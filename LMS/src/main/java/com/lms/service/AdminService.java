@@ -13,6 +13,7 @@ import com.lms.repository.FacultyRepository;
 import com.lms.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,7 +43,6 @@ public class AdminService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
 
     @Transactional
     public Batch addBatch(Batch batch) {
@@ -63,12 +63,10 @@ public class AdminService {
         return batchService.getAllBatches();
     }
 
-    public Batch getBatchById(Long id) {
-        return batchService.getBatchById(id)
-                .orElseThrow(() -> new IllegalStateException("Batch not found"));
+    public Optional<Batch> getBatchById(Long id) {
+        return batchService.getBatchById(id);
     }
 
-    
     @Transactional
     public Course addCourse(Course course) {
         if (courseRepository.findByCourseCode(course.getCourseCode()) != null) {
@@ -235,4 +233,3 @@ public class AdminService {
         return email.split("@")[0];
     }
 }
-

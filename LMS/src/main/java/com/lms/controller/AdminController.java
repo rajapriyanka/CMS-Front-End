@@ -8,6 +8,7 @@ import com.lms.entity.Batch;
 import com.lms.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
@@ -80,7 +82,6 @@ public class AdminController {
         }
     }
 
-    // Course management endpoints
     @PostMapping("/courses")
     public ResponseEntity<?> addCourse(@Validated @RequestBody Course course, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -123,7 +124,6 @@ public class AdminController {
         return ResponseEntity.ok(courses);
     }
 
-    // Batch management endpoints
     @PostMapping("/batches")
     public ResponseEntity<?> addBatch(@Validated @RequestBody Batch batch, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -169,8 +169,9 @@ public class AdminController {
     @GetMapping("/batches/{id}")
     public ResponseEntity<?> getBatchById(@PathVariable Long id) {
         try {
-            Batch batch = adminService.getBatchById(id);
-            return ResponseEntity.ok(batch);
+            return adminService.getBatchById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
