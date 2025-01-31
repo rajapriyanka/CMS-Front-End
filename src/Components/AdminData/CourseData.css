@@ -1,0 +1,235 @@
+/* General Layout */
+.course-data-page {
+    display: flex;
+    flex-direction: column;
+    height: 95vh;
+  }
+  
+  .course-data-container {
+    display: flex;
+    flex-direction: row;
+    height: 95vh;
+  }
+  
+  /* Sidebar */
+  .course-sidebar {
+    background-color: #013c28;
+    color: white;
+    width: 20%;
+    padding: 20px;
+    box-sizing: border-box;
+    box-shadow: 0px 4px 10px #013c28;
+    height: 635px;
+  }
+  
+  .course-sidebar h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+  
+  .course-sidebar button {
+    background-color: white;
+    color: #013c28;
+    padding: 20px 30px 20px 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+    font-weight: bold;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+  
+  .course-sidebar button:hover {
+    background-color: #025d1f;
+    color: white;
+    transition: 0.5s;
+  }
+  
+  /* Main Content */
+  .course-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  /* Search Bar and Course List Layout */
+  .course-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .course-search-bar {
+    margin-bottom: 20px;
+  }
+  
+  .course-search-input {
+    width: 95%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #013c28;
+    border-radius: 5px;
+  }
+  
+  /* Course List */
+  .course-list {
+    margin-top: 0;
+  }
+  
+  .course-list h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #013c28;
+  }
+  
+  .course-list table {
+    width: 97%;
+    border-collapse: collapse;
+  }
+  
+  .course-list th,
+  .course-list td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .course-list th {
+    background-color: #013c28;
+    color: white;
+  }
+  
+  .course-list tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .edit-button,
+  .delete-button {
+    padding: 6px 12px;
+    margin-right: 6px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  
+  .edit-button {
+    background-color: #013c28;
+    color: white;
+  }
+  .edit-button:hover {
+    background-color: #025d1f;
+    color: white;
+  }
+  
+  .delete-button {
+    background-color: #f44336;
+    color: white;
+  }
+  .delete-button:hover {
+    background-color: #900c03;
+    color: white;
+  }
+  
+  /* Registration Form */
+  .register-form {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px #013c28;
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .register-form h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 16px;
+    font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+    font-weight: bolder;
+    font-size: larger;
+    color: #013c28;
+  }
+  
+  .register-form .form-group {
+    margin-bottom: 16px;
+  }
+  
+  .register-form .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    margin-left: 20px;
+    font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+    font-weight: bold;
+    color: #013c28;
+  }
+  
+  .register-form .form-group input,
+  .register-form .form-group select {
+    width: 90%;
+    padding: 10px;
+    border: 1px solid #013c28;
+    border-radius: 5px;
+    font-size: 1rem;
+    margin-left: 20px;
+    font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+    font-weight: bold;
+  }
+  
+  .register-form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+  
+  .register-form .cancel-button,
+  .register-form .register-submit-button {
+    background-color: #013c28;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .register-form .cancel-button:hover,
+  .register-form .register-submit-button:hover {
+    background-color: #025d1f;
+  }
+  
+  .error-text {
+    color: red;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    margin-left: 20px;
+  }
+  
+  .response-message {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .response-message.success {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .response-message.error {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  

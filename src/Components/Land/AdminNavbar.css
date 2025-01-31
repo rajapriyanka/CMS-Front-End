@@ -1,0 +1,56 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: #fff;
+    border-bottom: solid 1px #013c28;
+    box-shadow: 0px 4px 10px #013c28;
+  }
+  
+  .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #013c28;
+  }
+  
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+  }
+  
+  .nav-links li a {
+    text-decoration: none;
+    color: #013c28;
+    padding: 10px 15px 10px 15px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-weight: bold;
+  }
+  
+  .nav-links li a:hover{
+    border: transparent;
+    padding: 10px 15px 10px 15px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #013c28, #025d1f);
+    color: white;
+    box-shadow: 0 0 10px #013c28;
+  }
+  button a{
+    text-decoration: none;
+    color: white;
+  }
+  .btn-get-started {
+    background: linear-gradient(90deg, #013c28, #025d1f);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 40px;
+    cursor: pointer;
+  }
+  
+  .btn-get-started:hover{
+    box-shadow: 0 0 10px #013c28;
+    background: #025d1f;
+    color: white;
+  }
