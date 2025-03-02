@@ -30,24 +30,12 @@ const FacultyData = () => {
     "Computer Science and Engineering",
     "Electronics and Communication Engineering",
     "Electrical and Electronics Engineering",
-    "Aeronautical Engineering",
     "Mechanical Engineering",
     "Civil Engineering",
     "Information Technology",
-    "H & S"
   ]
 
- 
-
-  const designations = [
-    "All Designations",
-    "Professor",
-    "Assistant Professor",
-    "Associate Professor",
-    "Lecturer",
-    "Head of Department (HOD)"
-  ]
-  
+  const designations = ["All Designations", "Professor", "Assistant Professor", "Associate Professor"]
 
   useEffect(() => {
     fetchFaculties()
@@ -293,21 +281,13 @@ const FacultyData = () => {
                   ))}
                 </select>
                 {errors.department && <span className="error-message">{errors.department}</span>}
-                <select
-  name="designation"
-  value={formData.designation}
-  onChange={handleInputChange}
->
-  <option value="" disabled>
-    Select Designation
-  </option>
-  <option value="Professor">Professor</option>
-  <option value="Associate Professor">Associate Professor</option>
-  <option value="Assistant Professor">Assistant Professor</option>
-  <option value="Lecturer">Lecturer</option>
-  <option value="Head of Department (HOD)">Head of Department (HOD)</option>
-</select>
-
+                <input
+                  type="text"
+                  name="designation"
+                  value={formData.designation}
+                  onChange={handleInputChange}
+                  placeholder="Designation"
+                />
                 {errors.designation && <span className="error-message">{errors.designation}</span>}
                 <input
                   type="tel"

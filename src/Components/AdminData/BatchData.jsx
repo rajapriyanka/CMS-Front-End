@@ -22,12 +22,12 @@ const BatchData = () => {
   const departments = [
     "Select Department",
     "Computer Science and Engineering",
+    "Information Technology",
     "Electronics and Communication Engineering",
     "Electrical and Electronics Engineering",
-    "Aeronautical Engineering",
     "Mechanical Engineering",
     "Civil Engineering",
-    "Information Technology",
+    "H&S",
   ]
 
   const fetchBatches = async () => {

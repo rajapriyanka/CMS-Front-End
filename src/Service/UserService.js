@@ -187,74 +187,74 @@ class UserService {
 
   static async getAllFaculty() {
     try {
-      console.log("UserService: Fetching all faculty...")
+      console.log("Fetching all faculty...")
       const token = localStorage.getItem("token")
-      if (!token) {
-        console.error("UserService: No token found")
-        throw new Error("No token found. Please log in again.")
-      }
+      if (!token) throw new Error("No token found. Please log in again.")
 
-      console.log("UserService: Making API request to:", `${UserService.BASE_URL}/api/faculty`)
       const response = await axios.get(`${UserService.BASE_URL}/api/faculty`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
 
-      console.log("UserService: API response for getAllFaculty:", response.data)
-
-      if (Array.isArray(response.data)) {
-        console.log("UserService: Received an array of faculties. Length:", response.data.length)
-        return response.data
-      } else {
-        console.error("UserService: Unexpected response format:", response.data)
-        return []
-      }
+      console.log("All Faculty Data:", response.data) // Log the complete response
+      return response.data
     } catch (err) {
-      console.error("UserService: Get all faculty error:", err.response?.data?.message || err.message)
+      console.error("Error fetching faculty:", err.response?.data?.message || err.message)
       throw new Error(err.response?.data?.message || "Failed to fetch faculty list. Please try again.")
     }
   }
 
-  static async updateFaculty(id, facultyData) {
+  static async uploadFacultyExcel(file) {
     try {
-      console.log(`Updating faculty with id ${id}:`, facultyData)
       const token = localStorage.getItem("token")
       if (!token) {
         throw new Error("No token found. Please log in again.")
       }
 
-      const response = await axios.put(`${UserService.BASE_URL}/api/faculty/${id}`, facultyData, {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const response = await axios.post(`${UserService.BASE_URL}/api/faculty/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
       })
 
-      console.log("Faculty update successful:", response.data)
       return response.data
     } catch (err) {
-      console.error("Update faculty error:", err.response?.data?.message || err.message)
-      throw new Error(err.response?.data?.message || "Failed to update faculty. Please try again.")
+      console.error("Faculty Excel upload error:", err.response?.data || err.message)
+      throw new Error(err.response?.data || "Failed to upload Excel file. Please try again.")
     }
   }
 
   static async deleteFaculty(id) {
     try {
-      console.log(`Deleting faculty with id ${id}`)
-      const token = localStorage.getItem("token")
-      if (!token) {
-        throw new Error("No token found. Please log in again.")
+      console.log(`Attempting to delete faculty with ID: ${id}`)
+
+      // Fetch all faculty and check if ID exists
+      const facultyList = await UserService.getAllFaculty()
+      const facultyExists = facultyList.some((faculty) => faculty.id === id)
+
+      if (!facultyExists) {
+        console.warn(`Faculty with ID ${id} not found in the system.`)
+        return "Faculty not found or already deleted."
       }
 
+      console.log(`Deleting faculty with ID ${id}`)
+      const token = localStorage.getItem("token")
+      if (!token) throw new Error("No token found. Please log in again.")
+
       const response = await axios.delete(`${UserService.BASE_URL}/api/faculty/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
 
       console.log("Faculty deletion successful:", response.data)
       return response.data
     } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn(`Faculty with ID ${id} not found or already deleted.`)
+        return "Faculty not found or already deleted."
+      }
       console.error("Delete faculty error:", err.response?.data?.message || err.message)
       throw new Error(err.response?.data?.message || "Failed to delete faculty. Please try again.")
     }
@@ -595,7 +595,30 @@ class UserService {
       throw new Error(err.response?.data?.message || "Failed to upload Excel file. Please try again.")
     }
   }
+  static async uploadCourseExcel(file) {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) {
+        throw new Error("No token found. Please log in again.")
+      }
+
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const response = await axios.post(`${UserService.BASE_URL}/api/courses/upload`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      })
+
+      return response.data
+    } catch (err) {
+      console.error("Course Excel upload error:", err.response?.data || err.message)
+      throw new Error(err.response?.data || "Failed to upload Excel file. Please try again.")
+    }
+  }
 }
 
-export default UserService
+export default UserService;
 

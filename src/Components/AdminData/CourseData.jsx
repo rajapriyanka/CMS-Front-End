@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react"
+"use client"
+
+import { useState, useEffect, useRef } from "react"
 import AdminNavbar from "../Land/AdminNavbar"
 import UserService from "../../Service/UserService"
 import "./CourseData.css"
@@ -14,7 +16,7 @@ const CourseData = () => {
     type: "ACADEMIC",
     department: "",
   })
-  // const [errors, setErrors] = useState({})
+  const [errors, setErrors] = useState({})
   const [courses, setCourses] = useState([])
   const [filteredCourses, setFilteredCourses] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -22,15 +24,16 @@ const CourseData = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedSemester, setSelectedSemester] = useState("")
   const [selectedDepartment, setSelectedDepartment] = useState("")
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef(null)
+  const [message, setMessage] = useState("")
 
-  const courseTypes = ["ACADEMIC", "NON_ACADEMIC"]
+  const courseTypes = ["ACADEMIC", "NON_ACADEMIC", "LAB"]
   const semesters = ["1", "2", "3", "4", "5", "6", "7", "8"]
   const departments = [
-    "Select Department",
     "Computer Science and Engineering",
     "Electronics and Communication Engineering",
     "Electrical and Electronics Engineering",
-    "Aeronautical Engineering",
     "Mechanical Engineering",
     "Civil Engineering",
     "Information Technology",
@@ -115,7 +118,6 @@ const CourseData = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      console.log("Submitting form data:", formData)
       if (editingCourse) {
         await UserService.updateCourse(editingCourse.id, formData)
       } else {
@@ -152,6 +154,27 @@ const CourseData = () => {
     setFilteredCourses(filtered)
   }
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      handleExcelUpload(file)
+    }
+  }
+
+  const handleExcelUpload = async (file) => {
+    setIsUploading(true)
+    try {
+      await UserService.uploadCourseExcel(file)
+      setMessage("Courses uploaded successfully")
+      fetchCourses()
+    } catch (error) {
+      console.error("Error uploading Excel file:", error)
+      setMessage(error.message)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   return (
     <div className="course-data-page">
       <AdminNavbar />
@@ -180,7 +203,6 @@ const CourseData = () => {
                     value={formData.title}
                     onChange={handleInputChange}
                     className="form-input"
-                    required
                   />
                 </div>
                 <div className="form-group">
@@ -192,7 +214,6 @@ const CourseData = () => {
                     value={formData.code}
                     onChange={handleInputChange}
                     className="form-input"
-                    required
                   />
                 </div>
                 <div className="form-group">
@@ -204,7 +225,6 @@ const CourseData = () => {
                     value={formData.contactPeriods}
                     onChange={handleInputChange}
                     className="form-input"
-                    required
                   />
                 </div>
                 <div className="form-group">
@@ -216,7 +236,6 @@ const CourseData = () => {
                     value={formData.semesterNo}
                     onChange={handleInputChange}
                     className="form-input"
-                    required
                   />
                 </div>
                 <div className="form-group">
@@ -227,7 +246,6 @@ const CourseData = () => {
                     value={formData.type}
                     onChange={handleInputChange}
                     className="form-input"
-                    required
                   >
                     {courseTypes.map((type) => (
                       <option key={type} value={type}>
@@ -244,7 +262,6 @@ const CourseData = () => {
                     value={formData.department}
                     onChange={handleInputChange}
                     className="form-input"
-                    required
                   >
                     <option value="">Select Department</option>
                     {departments.map((dept) => (
@@ -254,6 +271,21 @@ const CourseData = () => {
                     ))}
                   </select>
                 </div>
+                <input
+                  type="file"
+                  accept=".xlsx, .xls"
+                  onChange={handleFileChange}
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                />
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={isUploading}
+                  className="upload-button"
+                  style={{ marginTop: "10px" }}
+                >
+                  {isUploading ? "Uploading..." : "Upload Excel"}
+                </button>
                 <div className="form-actions">
                   <button type="submit" className="register-submit-button">
                     {editingCourse ? "Update" : "Register"}
@@ -350,5 +382,5 @@ const CourseData = () => {
   )
 }
 
-export default CourseData
+export default CourseData;
 
