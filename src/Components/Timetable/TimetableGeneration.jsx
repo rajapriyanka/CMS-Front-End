@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import FacultyService from "../../Service/FacultyService"
 import TimetableService from "../../Service/TimetableService"
 import "./Timetable.css"
+import FacultyNavbar from "../Land/FacultyNavbar";
 
 const TimetableGeneration = () => {
   const [loading, setLoading] = useState(false)
@@ -12,6 +14,7 @@ const TimetableGeneration = () => {
   const [selectedFacultyId, setSelectedFacultyId] = useState("")
   const [academicYear, setAcademicYear] = useState("2023-2024")
   const [semester, setSemester] = useState("FALL")
+  const navigate = useNavigate()
 
   useEffect(() => {
     // Check if user is faculty
@@ -69,8 +72,30 @@ const TimetableGeneration = () => {
     }
   }
 
+  const handleNavigation = (path) => {
+    navigate(path)
+  }
+
   return (
+    <div className="timetable-page">
+    <FacultyNavbar />
     <div className="timetable-container">
+      <div className="timetable-sidebar">
+       <h2>Faculty Schedule</h2>
+          <div className="card">
+            
+            <button className="generate-button" onClick={() => handleNavigation("/generate-timetable")}>
+              Generate Timetable
+            </button>
+          </div>
+          <div className="card">
+            
+            <button className="view-button" onClick={() => handleNavigation("/view-timetable")}>
+              View Timetable
+            </button>
+          </div>
+      </div>
+      <div className="timetable-main-content">
       <h2>Generate Timetable</h2>
 
       {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
@@ -135,6 +160,8 @@ const TimetableGeneration = () => {
           <li>The timetable will follow the standard 8-period day structure</li>
         </ul>
       </div>
+      </div>
+    </div>
     </div>
   )
 }

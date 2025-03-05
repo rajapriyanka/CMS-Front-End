@@ -1,116 +1,133 @@
-import axios from "axios"
+import axios from "axios";
 
 class FacultyService {
-  static BASE_URL = "http://localhost:8080"
+  static BASE_URL = "http://localhost:8080";
 
   // Utility to get the token
   static getToken() {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
     if (!token) {
-      throw new Error("No token found. Please log in.")
+      throw new Error("No token found. Please log in.");
     }
-    return token
+    return token;
   }
 
   static async login(email, password) {
     try {
-      const response = await axios.post(`${this.BASE_URL}/api/faculty/login`, { email, password })
-
+      const response = await axios.post(`${this.BASE_URL}/api/faculty/login`, { email, password });
       if (response?.data?.jwt) {
-        // Save essential data
-        localStorage.setItem("token", response.data.jwt)
-        localStorage.setItem("role", response.data.role)
-        localStorage.setItem("facultyId", response.data.id || "")
-
-        return response.data
+        localStorage.setItem("token", response.data.jwt);
+        localStorage.setItem("role", response.data.role);
+        localStorage.setItem("facultyId", response.data.id || "");
+        return response.data;
       } else {
-        throw new Error("Invalid response from server.")
+        throw new Error("Invalid response from server.");
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Login failed. Please try again."
-      throw new Error(errorMessage)
+      throw new Error(error.response?.data?.message || "Login failed. Please try again.");
     }
   }
 
-  // Logout function
   static logout() {
-    localStorage.removeItem("token")
-    localStorage.removeItem("role")
-    localStorage.removeItem("facultyId")
-    window.location.href = "/"
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("facultyId");
+    window.location.href = "/";
   }
 
-  // Check if the user is authenticated
   static isFacultyAuthenticated() {
-    return Boolean(localStorage.getItem("token"))
+    return Boolean(localStorage.getItem("token"));
   }
 
-  // Check if the user has a Faculty role
   static isFaculty() {
-    const userRole = localStorage.getItem("role")
-    return userRole?.toUpperCase() === "FACULTY"
+    return localStorage.getItem("role")?.toUpperCase() === "FACULTY";
   }
 
-  // Fetch all faculties (for admin use)
   static async getAllFaculties() {
-    try {
-      const token = this.getToken()
-      const response = await axios.get(`${this.BASE_URL}/api/admin/faculties`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      return response.data
-    } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to fetch faculties. Please try again later.")
-    }
+    return this.apiGet("/api/admin/faculties");
   }
 
-  // Fetch all courses
   static async getAllCourses() {
-    try {
-      const token = this.getToken()
-      const response = await axios.get(`${this.BASE_URL}/api/faculties/dashboard/courses`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      return response.data
-    } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to fetch courses. Please try again later.")
-    }
+    return this.apiGet("/api/faculties/dashboard/courses");
   }
 
-  // Fetch all batches
   static async getAllBatches() {
+    return this.apiGet("/api/faculties/dashboard/batches");
+  }
+
+  static async addCourseToBatch(facultyId, courseId, batchId) {
+    return this.apiPost(`/api/faculties/dashboard/faculty/${facultyId}/courses/${courseId}/batches/${batchId}`);
+  }
+
+  static async getAssignedCourses(facultyId) {
+    return this.apiGet(`/api/faculties/dashboard/faculty/${facultyId}/assigned-courses`);
+  }
+
+  static async removeCourse(facultyId, courseId, batchId) {
+    return this.apiDelete(`/api/faculties/dashboard/${facultyId}/courses/${courseId}/batch/${batchId}`);
+  }
+
+  static async handleLeaveActionFromEmail(token, comment) {
     try {
-      const token = this.getToken()
-      const response = await axios.get(`${this.BASE_URL}/api/faculties/dashboard/batches`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      return response.data
+      const response = await axios.get(`${this.BASE_URL}/api/email-actions/leave/${token}/api`, {
+        params: { comment },
+      });
+      return { success: true, message: response.data.message };
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to fetch batches. Please try again later.")
+      console.error("Error processing email action:", error);
+      return {
+        success: false,
+        message: error.response?.data || "Failed to process the leave request. The link may be invalid or expired.",
+      };
     }
   }
 
-  // Assign a course to a batch for a faculty member
-  static async addCourseToBatch(facultyId, courseId, batchId) {
+  static async validateEmailActionToken(token) {
     try {
-      const token = this.getToken()
-
-      const response = await axios.post(
-        `${this.BASE_URL}/api/faculties/dashboard/faculty/${facultyId}/courses/${courseId}/batches/${batchId}`,
-        {}, // Send empty body if no additional data is needed
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      )
-
-      console.log("Course assigned successfully:", response.data)
-      return response.data
+      const response = await axios.get(`${this.BASE_URL}/api/email-actions/leave/${token}/api`);
+      return { isValid: true };
     } catch (error) {
-      console.error("Error assigning course:", error.response?.data?.message || error.message)
-      throw new Error(error.response?.data?.message || "Failed to assign course. Please try again.")
+      console.error("Error validating token:", error);
+      return {
+        isValid: false,
+        message: error.response?.data || "This link is invalid or has expired.",
+      };
+    }
+  }
+
+  // Generic API Methods
+  static async apiGet(url) {
+    try {
+      const response = await axios.get(`${this.BASE_URL}${url}`, {
+        headers: { Authorization: `Bearer ${this.getToken()}` },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Request failed. Please try again.");
+    }
+  }
+
+  static async apiPost(url, data = {}) {
+    try {
+      const response = await axios.post(`${this.BASE_URL}${url}`, data, {
+        headers: { Authorization: `Bearer ${this.getToken()}` },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Request failed. Please try again.");
+    }
+  }
+
+  static async apiDelete(url) {
+    try {
+      const response = await axios.delete(`${this.BASE_URL}${url}`, {
+        headers: { Authorization: `Bearer ${this.getToken()}` },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Request failed. Please try again.");
     }
   }
 }
 
 export default FacultyService;
-

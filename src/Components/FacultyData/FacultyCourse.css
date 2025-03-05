@@ -25,7 +25,7 @@
     margin-bottom: 16px;
   }
   
-  .add-course-button {
+  .sidebar-button {
     background-color: white;
     color: #013c28;
     padding: 20px 30px 20px 30px;
@@ -40,7 +40,7 @@
     width: 100%;
   }
   
-  .add-course-button:hover {
+  .sidebar-button:hover {
     background-color: #025d1f;
     color: white;
     transition: 0.5s;
@@ -75,7 +75,7 @@
     margin-bottom: 16px;
   }
   
-  .form-group label {
+  .add-course-form label {
     display: block;
     font-size: 0.875rem;
     font-weight: 600;
@@ -83,7 +83,7 @@
     color: #013c28;
   }
   
-  .form-group select {
+  .add-course-form select {
     width: 100%;
     padding: 10px;
     border: 1px solid #013c28;
@@ -91,7 +91,7 @@
     font-size: 1rem;
   }
   
-  .submit-button {
+  .add-course-submit-button {
     background-color: #013c28;
     color: white;
     padding: 10px 16px;
@@ -99,9 +99,10 @@
     border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
+    margin-top: 10px;
   }
   
-  .submit-button:hover {
+  .add-course-submit-button:hover {
     background-color: #025d1f;
   }
   
@@ -151,4 +152,23 @@
     background-color: #d32f2f;
   }
   
+  .assigned-courses-table table {
+    width: 97%;
+    border-collapse: collapse;
+  }
   
+  .assigned-courses-table th,
+  .assigned-courses-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .assigned-courses-table th {
+    background-color: #013c28;
+    color: white;
+  }
+  
+  .assigned-courses-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }

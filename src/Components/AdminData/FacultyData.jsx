@@ -35,7 +35,7 @@ const FacultyData = () => {
     "Information Technology",
   ]
 
-  const designations = ["All Designations", "Professor", "Assistant Professor", "Associate Professor"]
+  const designations = ["Professor", "Assistant Professor", "Associate Professor"]
 
   useEffect(() => {
     fetchFaculties()
@@ -281,13 +281,12 @@ const FacultyData = () => {
                   ))}
                 </select>
                 {errors.department && <span className="error-message">{errors.department}</span>}
-                <input
-                  type="text"
-                  name="designation"
-                  value={formData.designation}
-                  onChange={handleInputChange}
-                  placeholder="Designation"
-                />
+                <select name="designation" value={formData.designation} onChange={handleInputChange}>
+                  <option value="">Select Designation</option>
+                  {designations.map((designation, index) => (
+                    <option key={index} value={designation}>{designation}</option>
+                  ))}
+                </select>
                 {errors.designation && <span className="error-message">{errors.designation}</span>}
                 <input
                   type="tel"

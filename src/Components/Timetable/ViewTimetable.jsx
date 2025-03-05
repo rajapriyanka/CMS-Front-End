@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react"
 import FacultyService from "../../Service/FacultyService"
 import TimetableService from "../../Service/TimetableService"
-import "./Timetable.css"
+import "./ViewTimetable.css"
+import { useNavigate } from "react-router-dom"
+import FacultyNavbar from "../Land/FacultyNavbar"
 
 const ViewTimetable = () => {
   const [loading, setLoading] = useState(false)
@@ -16,6 +18,7 @@ const ViewTimetable = () => {
   const [selectedBatchId, setSelectedBatchId] = useState("")
   const [academicYear, setAcademicYear] = useState("2023-2024")
   const [semester, setSemester] = useState("FALL")
+  const navigate = useNavigate()
 
   // Days and periods for the timetable
   const days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"]
@@ -115,13 +118,36 @@ const ViewTimetable = () => {
     return acc
   }, {})
 
-  return (
-    <div className="timetable-container">
-      <h2>View Timetable</h2>
+  const handleNavigation = (path) => {
+    navigate(path)
+  }
 
+  return (
+    <div className="view-timetable-page">
+      <FacultyNavbar />
+    <div className="view-timetable-container">
+      
+      <div className="view-timetable-sidebar">
+       <h2>Faculty Schedule</h2>
+          <div className="card">
+            
+            <button className="generate-button" onClick={() => handleNavigation("/generate-timetable")}>
+              Generate Timetable
+            </button>
+          </div>
+          <div className="card">
+            
+            <button className="view-button" onClick={() => handleNavigation("/view-timetable")}>
+              View Timetable
+            </button>
+          </div>
+      </div>
+
+    <div className="view-timetable-main-content">
+      <h2>View Timetable</h2>  
       {message.text && <div className={`message ${message.type}`}>{message.text}</div>}
 
-      <div className="timetable-form">
+      <div className="view-timetable-form">
         {/* View Type Selection */}
         <div className="form-group">
           <label>View Type:</label>
@@ -267,6 +293,8 @@ const ViewTimetable = () => {
           </div>
         </div>
       )}
+      </div>
+    </div>
     </div>
   )
 }

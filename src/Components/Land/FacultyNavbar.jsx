@@ -7,9 +7,9 @@ const FacultyNavbar = () => {
     <nav className="fac-navbar">
       <div className="fac-logo">DAYOFF DASHBOARD</div>
       <ul className="fac-nav-links">
-        <li><a href="/fac-course-data">Courses</a></li>
-        <li><a href="/fac-leave-data">Leave</a></li>
+        <li><a href="/fac-course-data">Courses</a></li>        
         <li><a href="/fac-time-data">Time Table</a></li>
+        <li><a href="/fac-leave-data">Leave</a></li>
         
       </ul>
       <button className="btn-get-started"><a href="/">Logout</a></button>

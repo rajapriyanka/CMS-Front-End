@@ -58,6 +58,12 @@
   align-items: center;
 }
 
+.student-main-content {
+  flex-grow: 1;
+  overflow-y: auto; /* Enables vertical scrollbar */
+  padding: 20px;
+  height: 80vh; /* Full height */
+}
 /* Search Bar */
 .search-input {
   width: 100%;

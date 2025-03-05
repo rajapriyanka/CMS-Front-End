@@ -39,6 +39,7 @@ const App = () => {
         <Routes>
           {/* Public route */}
           <Route path="/" element={<Mainsection />} />
+          
 
           {/* Admin routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
