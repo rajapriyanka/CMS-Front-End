@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from "react"
+"use client"
+
+import { useState, useEffect, useRef } from "react"
 import AdminNavbar from "../Land/AdminNavbar"
 import UserService from "../../Service/UserService"
 import "./FacultyData.css"
@@ -33,6 +35,7 @@ const FacultyData = () => {
     "Mechanical Engineering",
     "Civil Engineering",
     "Information Technology",
+    "Aeronautical Engineering",
   ]
 
   const designations = ["Professor", "Assistant Professor", "Associate Professor"]
@@ -89,6 +92,9 @@ const FacultyData = () => {
     if (!formData.name.trim()) {
       newErrors.name = "Name is required."
       valid = false
+    } else if (!/^[A-Za-z\s]+$/.test(formData.name)) {
+      newErrors.name = "Name should contain only alphabets."
+      valid = false
     }
     if (!formData.email.trim()) {
       newErrors.email = "Email is required."
@@ -127,7 +133,17 @@ const FacultyData = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData({ ...formData, [name]: value })
+
+    // Prevent numeric input for name field
+    if (name === "name") {
+      // Only update if the value doesn't contain numbers
+      if (!/\d/.test(value)) {
+        setFormData({ ...formData, [name]: value })
+      }
+    } else {
+      // For other fields, update normally
+      setFormData({ ...formData, [name]: value })
+    }
   }
 
   const handleRegister = async (e) => {
@@ -253,8 +269,6 @@ const FacultyData = () => {
             <button className="list-button" onClick={handleListClick}>
               List of Faculty
             </button>
-           
-              
           </div>
         </div>
 
@@ -284,7 +298,9 @@ const FacultyData = () => {
                 <select name="designation" value={formData.designation} onChange={handleInputChange}>
                   <option value="">Select Designation</option>
                   {designations.map((designation, index) => (
-                    <option key={index} value={designation}>{designation}</option>
+                    <option key={index} value={designation}>
+                      {designation}
+                    </option>
                   ))}
                 </select>
                 {errors.designation && <span className="error-message">{errors.designation}</span>}
@@ -335,16 +351,19 @@ const FacultyData = () => {
                   ))}
                 </select>
                 <select
-                  value={selectedDesignation}
-                  onChange={(e) => setSelectedDesignation(e.target.value)}
-                  className="designation-select"
-                >
-                  {designations.map((designation, index) => (
-                    <option key={index} value={designation}>
-                      {designation}
-                    </option>
-                  ))}
-                </select>
+  value={selectedDesignation}
+  onChange={(e) => setSelectedDesignation(e.target.value)}
+  className="designation-select"
+>
+  <option value="">Select Designation</option>
+  <option value="All Designations">All Designations</option>
+  {designations.map((designation, index) => (
+    <option key={index} value={designation}>
+      {designation}
+    </option>
+  ))}
+</select>
+
                 <button onClick={handleFilter} className="filter-button">
                   Filter
                 </button>
@@ -394,5 +413,5 @@ const FacultyData = () => {
   )
 }
 
-export default FacultyData
+export default FacultyData;
 

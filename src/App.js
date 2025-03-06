@@ -6,6 +6,7 @@ import AdminDashboard from "./Components/AdminData/AdminDashboard"
 import FacultyData from "./Components/AdminData/FacultyData"
 import StudentData from "./Components/AdminData/StudentData"
 import CourseData from "./Components/AdminData/CourseData"
+import TimetableData from "./Components/AdminData/TimetableData"
 import BatchData from "./Components/AdminData/BatchData"
 import FacultyLogin from "./Components/Login/FacultyLogin"
 import FacultyDashboard from "./Components/FacultyData/FacultyDashboard"
@@ -47,6 +48,7 @@ const App = () => {
           <Route path="/faculty-data" element={<AdminProtectedRoute element={<FacultyData />} />} />
           <Route path="/student-data" element={<AdminProtectedRoute element={<StudentData />} />} />
           <Route path="/course-data" element={<AdminProtectedRoute element={<CourseData />} />} />
+          <Route path="/timetable-data" element={<AdminProtectedRoute element={<TimetableData />} />} />
           <Route path="/batch-data" element={<AdminProtectedRoute element={<BatchData />} />} />
           <Route path="/view-all-timetables" element={<AdminProtectedRoute element={<ViewTimetable />} />} />
 

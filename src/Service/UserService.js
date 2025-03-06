@@ -184,7 +184,28 @@ class UserService {
       throw new Error(err.response?.data?.message || "Faculty registration failed. Please try again.")
     }
   }
-
+  static async updateFaculty(userId, facultyData) {
+    try {
+      console.log(`Updating faculty with userId ${userId}:`, facultyData);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found. Please log in again.");
+      }
+  
+      const response = await axios.put(`${UserService.BASE_URL}/api/faculty/user/${userId}`, facultyData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      console.log("Faculty update successful:", response.data);
+      return response.data;
+    } catch (err) {
+      console.error("Update faculty error:", err.response?.data?.message || err.message);
+      throw new Error(err.response?.data?.message || "Failed to update faculty. Please try again.");
+    }
+  }
+  
   static async getAllFaculty() {
     try {
       console.log("Fetching all faculty...")
@@ -244,7 +265,7 @@ class UserService {
       const token = localStorage.getItem("token")
       if (!token) throw new Error("No token found. Please log in again.")
 
-      const response = await axios.delete(`${UserService.BASE_URL}/api/faculty/${id}`, {
+      const response = await axios.delete(`${UserService.BASE_URL}/api/faculty/user/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 

@@ -37,6 +37,7 @@ const CourseData = () => {
     "Mechanical Engineering",
     "Civil Engineering",
     "Information Technology",
+    "Aeronautical Engineering",
   ]
 
   useEffect(() => {
@@ -75,6 +76,7 @@ const CourseData = () => {
       type: "ACADEMIC",
       department: "",
     })
+    setErrors({})
   }
 
   const handleListClick = () => {
@@ -97,6 +99,7 @@ const CourseData = () => {
     })
     setShowForm(true)
     setShowList(false)
+    setErrors({})
   }
 
   const handleDelete = async (id) => {
@@ -112,21 +115,65 @@ const CourseData = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
+
+    // Prevent numeric input for title field
+    if (name === "title" && /\d/.test(value.slice(-1))) {
+      return // Don't update state if the last character typed is a number
+    }
+
+    // Prevent negative values for contactPeriods field
+    if (name === "contactPeriods" && value.includes("-")) {
+      return // Don't update state if the value contains a negative sign
+    }
+
     setFormData((prevState) => ({ ...prevState, [name]: value }))
+    // Clear the error for this field when the user starts typing
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }))
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+    if (!formData.title.trim()) {
+      newErrors.title = "Title is required"
+    } else if (/\d/.test(formData.title)) {
+      newErrors.title = "Title should not contain numeric values"
+    }
+    if (!formData.code.trim()) {
+      newErrors.code = "Code is required"
+    }
+    if (!formData.contactPeriods.trim()) {
+      newErrors.contactPeriods = "Contact Periods is required"
+    } else if (Number.parseInt(formData.contactPeriods) < 0) {
+      newErrors.contactPeriods = "Contact Periods should not be negative"
+    }
+    if (!formData.semesterNo.trim()) {
+      newErrors.semesterNo = "Semester Number is required"
+    } else if (!semesters.includes(formData.semesterNo)) {
+      newErrors.semesterNo = "Invalid Semester Number"
+    }
+    if (!formData.department) {
+      newErrors.department = "Department is required"
+    }
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    try {
-      if (editingCourse) {
-        await UserService.updateCourse(editingCourse.id, formData)
-      } else {
-        await UserService.registerCourse(formData)
+    if (validateForm()) {
+      try {
+        if (editingCourse) {
+          await UserService.updateCourse(editingCourse.id, formData)
+        } else {
+          await UserService.registerCourse(formData)
+        }
+        setShowForm(false)
+        fetchCourses()
+        setMessage(editingCourse ? "Course updated successfully" : "Course registered successfully")
+      } catch (error) {
+        console.error("Error saving course:", error)
+        setMessage("Error saving course. Please try again.")
       }
-      setShowForm(false)
-      fetchCourses()
-    } catch (error) {
-      console.error("Error saving course:", error)
     }
   }
 
@@ -148,7 +195,8 @@ const CourseData = () => {
   const handleFilter = () => {
     const filtered = courses.filter((course) => {
       const semesterMatch = !selectedSemester || course.semesterNo.toString() === selectedSemester
-      const departmentMatch = !selectedDepartment || course.department === selectedDepartment
+      const departmentMatch =
+        !selectedDepartment || course.department.toLowerCase() === selectedDepartment.toLowerCase()
       return semesterMatch && departmentMatch
     })
     setFilteredCourses(filtered)
@@ -190,6 +238,7 @@ const CourseData = () => {
         </div>
 
         <div className="course-main-content">
+          {message && <div className="message">{message}</div>}
           {showForm && (
             <div className="register-form">
               <h2>{editingCourse ? "Edit Course" : "Register New Course"}</h2>
@@ -204,6 +253,7 @@ const CourseData = () => {
                     onChange={handleInputChange}
                     className="form-input"
                   />
+                  {errors.title && <span className="error-message">{errors.title}</span>}
                 </div>
                 <div className="form-group">
                   <label htmlFor="code">Code</label>
@@ -215,6 +265,7 @@ const CourseData = () => {
                     onChange={handleInputChange}
                     className="form-input"
                   />
+                  {errors.code && <span className="error-message">{errors.code}</span>}
                 </div>
                 <div className="form-group">
                   <label htmlFor="contactPeriods">Contact Periods</label>
@@ -225,18 +276,27 @@ const CourseData = () => {
                     value={formData.contactPeriods}
                     onChange={handleInputChange}
                     className="form-input"
+                    min="0"
                   />
+                  {errors.contactPeriods && <span className="error-message">{errors.contactPeriods}</span>}
                 </div>
                 <div className="form-group">
                   <label htmlFor="semesterNo">Semester Number</label>
-                  <input
-                    type="number"
+                  <select
                     id="semesterNo"
                     name="semesterNo"
                     value={formData.semesterNo}
                     onChange={handleInputChange}
                     className="form-input"
-                  />
+                  >
+                    <option value="">Select Semester</option>
+                    {semesters.map((semester) => (
+                      <option key={semester} value={semester}>
+                        {semester}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.semesterNo && <span className="error-message">{errors.semesterNo}</span>}
                 </div>
                 <div className="form-group">
                   <label htmlFor="type">Course Type</label>
@@ -270,22 +330,8 @@ const CourseData = () => {
                       </option>
                     ))}
                   </select>
+                  {errors.department && <span className="error-message">{errors.department}</span>}
                 </div>
-                <input
-                  type="file"
-                  accept=".xlsx, .xls"
-                  onChange={handleFileChange}
-                  ref={fileInputRef}
-                  style={{ display: "none" }}
-                />
-                <button
-                  onClick={() => fileInputRef.current.click()}
-                  disabled={isUploading}
-                  className="upload-button"
-                  style={{ marginTop: "10px" }}
-                >
-                  {isUploading ? "Uploading..." : "Upload Excel"}
-                </button>
                 <div className="form-actions">
                   <button type="submit" className="register-submit-button">
                     {editingCourse ? "Update" : "Register"}

@@ -282,29 +282,36 @@ const FacultyLeave = () => {
     <div className="faculty-leave-page">
       <FacultyNavbar />
       <div className="faculty-leave-container">
-        <h1>Faculty Leave Management</h1>
+        
+        <div className="faculty-leave-sidebar">
+            <h2>Faculty Leave Management</h2>
 
-        <div className="leave-tabs">
-          <button
-            className={`tab-button ${activeTab === "request" ? "active" : ""}`}
-            onClick={() => setActiveTab("request")}
-          >
-            Request Leave
-          </button>
-          <button
-            className={`tab-button ${activeTab === "history" ? "active" : ""}`}
-            onClick={() => setActiveTab("history")}
-          >
-            Leave History
-          </button>
-          <button
-            className={`tab-button ${activeTab === "approvals" ? "active" : ""}`}
-            onClick={() => setActiveTab("approvals")}
-          >
-            Pending Approvals
-            {pendingApprovals.length > 0 && <span className="badge">{pendingApprovals.length}</span>}
-          </button>
+            <div className="leave-tabs">
+              <button
+                 className={`tab-button ${activeTab === "request" ? "active" : ""}`}
+                 onClick={() => setActiveTab("request")}
+                 >
+                    Request Leave
+              </button>
+              <button
+                className={`tab-button ${activeTab === "history" ? "active" : ""}`}
+                onClick={() => setActiveTab("history")}
+                >
+                 Leave History
+              </button>
+              <button
+                className={`tab-button ${activeTab === "approvals" ? "active" : ""}`}
+                onClick={() => setActiveTab("approvals")}
+                >
+                 Pending Approvals
+                 {pendingApprovals.length > 0 && <span className="badge">{pendingApprovals.length}</span>}
+              </button>
+            </div>
         </div>
+
+        <div className="faculty-leave-main-content">
+
+        
 
         {error && <div className="error-message">{error}</div>}
         {success && <div className="success-message">{success}</div>}
@@ -390,7 +397,7 @@ const FacultyLeave = () => {
                 </div>
               </div>
 
-              <button type="submit" className="submit-button" disabled={loading || facultyList.length === 0}>
+              <button type="submit" className="faculty-leave-submit-button" disabled={loading || facultyList.length === 0}>
                 {loading ? "Submitting..." : "Submit Leave Request"}
               </button>
             </form>
@@ -491,6 +498,8 @@ const FacultyLeave = () => {
             )}
           </div>
         )}
+
+       </div>
       </div>
     </div>
   )

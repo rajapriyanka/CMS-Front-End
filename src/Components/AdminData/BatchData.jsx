@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react"
+"use client"
+
+import { useState } from "react"
 import AdminNavbar from "../Land/AdminNavbar"
 import UserService from "../../Service/UserService"
 import "./BatchData.css"
@@ -27,7 +29,7 @@ const BatchData = () => {
     "Electrical and Electronics Engineering",
     "Mechanical Engineering",
     "Civil Engineering",
-    "H&S",
+    "Aeronautical Engineering",
   ]
 
   const fetchBatches = async () => {
@@ -76,9 +78,16 @@ const BatchData = () => {
     if (!formData.batchName.trim()) {
       newErrors.batchName = "Batch name is required."
       valid = false
+    } else if (/\d/.test(formData.batchName)) {
+      newErrors.batchName = "Batch name should not contain numeric values."
+      valid = false
     }
     if (!formData.department || formData.department === "Select Department") {
       newErrors.department = "Department is required."
+      valid = false
+    }
+    if (formData.section && /\d/.test(formData.section)) {
+      newErrors.section = "Section should not contain numeric values."
       valid = false
     }
 
@@ -88,6 +97,14 @@ const BatchData = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
+
+    // For batchName and section fields, prevent numeric input
+    if ((name === "batchName" || name === "section") && /\d/.test(value)) {
+      // If the new value contains numbers, don't update the state
+      return
+    }
+
+    // For other fields or if the value is valid, update normally
     setFormData((prevState) => ({
       ...prevState,
       [name]: name === "department" && value === "Select Department" ? "" : value,
@@ -227,6 +244,7 @@ const BatchData = () => {
                     onChange={handleInputChange}
                     className="form-input"
                   />
+                  {errors.section && <p className="error-text">{errors.section}</p>}
                 </div>
                 <div className="form-actions">
                   <button type="button" className="cancel-button" onClick={handleCancelClick}>
@@ -308,5 +326,5 @@ const BatchData = () => {
   )
 }
 
-export default BatchData
+export default BatchData;
 

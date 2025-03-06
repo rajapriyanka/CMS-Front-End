@@ -11,6 +11,7 @@ const Navbar = () => {
         <li><a href="/student-data">Student</a></li>
         <li><a href="/batch-data">Batch</a></li>
         <li><a href="/course-data">Course</a></li>
+        <li><a href="/timetable-data">Timetable</a></li>
         
       </ul>
       <button className="btn-get-started"><a href="/">Logout</a></button>

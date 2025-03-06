@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from "react"
+"use client"
+
+import { useState, useEffect, useRef } from "react"
 import UserService from "../../Service/UserService"
 import AdminNavbar from "../Land/AdminNavbar"
 import "./StudentData.css"
@@ -23,6 +25,7 @@ const StudentData = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("")
   const [batchInput, setBatchInput] = useState("")
   const [filteredStudents, setFilteredStudents] = useState([])
+  const [errors, setErrors] = useState({})
 
   useEffect(() => {
     fetchStudents()
@@ -41,19 +44,121 @@ const StudentData = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    if (name === "email" || name === "password") {
+
+    // Clear the error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }))
+    }
+
+    if (name === "email") {
       setFormData((prev) => ({
         ...prev,
         user: { ...prev.user, [name]: value },
       }))
+    } else if (name === "password") {
+      // When password changes, update both password and mobile number
+      setFormData((prev) => ({
+        ...prev,
+        user: { ...prev.user, password: value },
+        mobileNumber: value, // Sync mobile number with password
+      }))
+    } else if (name === "mobileNumber") {
+      // When mobile number changes, update both mobile number and password
+      setFormData((prev) => ({
+        ...prev,
+        mobileNumber: value,
+        user: { ...prev.user, password: value }, // Sync password with mobile number
+      }))
+    } else if (name === "name") {
+      // Only allow alphabets and spaces for name field
+      if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+        setFormData((prev) => ({ ...prev, [name]: value }))
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }))
     }
   }
 
+  const validateForm = () => {
+    let valid = true
+    const newErrors = {}
+
+    // Name validation - only alphabets
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required."
+      valid = false
+    } else if (!/^[A-Za-z\s]+$/.test(formData.name)) {
+      newErrors.name = "Name should contain only alphabets."
+      valid = false
+    }
+
+    // Email validation
+    if (!formData.user.email.trim()) {
+      newErrors.email = "Email is required."
+      valid = false
+    } else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i.test(formData.user.email)) {
+      newErrors.email = "Enter a valid email address."
+      valid = false
+    }
+
+    // Password validation
+    if (!formData.user.password.trim()) {
+      newErrors.password = "Password is required."
+      valid = false
+    }
+
+    // Mobile number validation
+    if (!formData.mobileNumber.trim()) {
+      newErrors.mobileNumber = "Mobile number is required."
+      valid = false
+    } else if (!/^\d{10}$/.test(formData.mobileNumber)) {
+      newErrors.mobileNumber = "Mobile number must be exactly 10 digits."
+      valid = false
+    }
+
+    // Validate that mobile number and password are the same
+    if (formData.mobileNumber !== formData.user.password) {
+      newErrors.mobileNumber = "Mobile number and password must be the same."
+      newErrors.password = "Password and mobile number must be the same."
+      valid = false
+    }
+
+    // D.No validation - only numbers
+    if (!formData.dno.trim()) {
+      newErrors.dno = "D.No is required."
+      valid = false
+    } else if (!/^\d+$/.test(formData.dno)) {
+      newErrors.dno = "D.No should contain only numbers."
+      valid = false
+    }
+
+    // Department validation
+    if (!formData.department.trim()) {
+      newErrors.department = "Department is required."
+      valid = false
+    }
+
+    // Batch name validation - only alphabets
+    if (!formData.batchName.trim()) {
+      newErrors.batchName = "Batch Name is required."
+      valid = false
+    } else if (!/^[A-Za-z\s]+$/.test(formData.batchName)) {
+      newErrors.batchName = "Batch Name should contain only alphabets."
+      valid = false
+    }
+
+    setErrors(newErrors)
+    return valid
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
+
+    if (!validateForm()) {
+      return
+    }
+
     try {
       const studentData = {
         ...formData,
@@ -76,24 +181,24 @@ const StudentData = () => {
   }
 
   const handleEdit = (student) => {
-    console.log(student); // Check the student object
+    console.log(student) // Check the student object
     setIsEditing(true)
     setEditingId(student.id)
     setFormData({
       name: student.name,
       user: {
         email: student.email || "",
-        password: "",
+        password: student.mobileNumber || "", // Set password to mobile number when editing
       },
       dno: student.dno || "",
-      department: student.department || "",  // Log if department is correct here
+      department: student.department || "", // Log if department is correct here
       batchName: student.batchName || "",
       mobileNumber: student.mobileNumber || "",
     })
-    console.log(formData.department); // Check if department value is set properly
+    console.log(formData.department) // Check if department value is set properly
     setActiveTab("register")
   }
-  
+
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this student?")) {
       try {
@@ -119,6 +224,7 @@ const StudentData = () => {
     setIsEditing(false)
     setEditingId(null)
     setError("")
+    setErrors({})
   }
 
   const handleSearch = async (e) => {
@@ -173,19 +279,18 @@ const StudentData = () => {
   const handleFilter = () => {
     const filtered = students.filter((student) => {
       // Check if the selected department matches or if no department is selected
-      const departmentMatch = !selectedDepartment || student.department === selectedDepartment;
-  
+      const departmentMatch = !selectedDepartment || student.department === selectedDepartment
+
       // Check if the batch input matches or if no batch input is provided
-      const batchMatch = !batchInput || student.batchName === batchInput;
-  
+      const batchMatch = !batchInput || student.batchName === batchInput
+
       // Both conditions need to be true to include the student
-      return departmentMatch && batchMatch;
-    });
-  
+      return departmentMatch && batchMatch
+    })
+
     // Update the filtered students state
-    setFilteredStudents(filtered);
+    setFilteredStudents(filtered)
   }
-  
 
   const handleRegisterClick = () => {
     setActiveTab("register")
@@ -227,6 +332,7 @@ const StudentData = () => {
                   placeholder="Name"
                   required
                 />
+                {errors.name && <span className="error-message">{errors.name}</span>}
                 <input
                   type="email"
                   name="email"
@@ -235,6 +341,7 @@ const StudentData = () => {
                   placeholder="Email"
                   required
                 />
+                {errors.email && <span className="error-message">{errors.email}</span>}
                 <input
                   type="password"
                   name="password"
@@ -243,6 +350,7 @@ const StudentData = () => {
                   placeholder="Password"
                   required
                 />
+                {errors.password && <span className="error-message">{errors.password}</span>}
                 <input
                   type="tel"
                   name="mobileNumber"
@@ -251,6 +359,7 @@ const StudentData = () => {
                   placeholder="Mobile Number"
                   required
                 />
+                {errors.mobileNumber && <span className="error-message">{errors.mobileNumber}</span>}
                 <input
                   type="text"
                   name="dno"
@@ -259,16 +368,20 @@ const StudentData = () => {
                   placeholder="D.No"
                   required
                 />
+                {errors.dno && <span className="error-message">{errors.dno}</span>}
                 <select name="department" value={formData.department} onChange={handleInputChange} required>
                   <option value="">Select Department</option>
                   <option value="Computer Science and Engineering">Computer Science and Engineering</option>
                   <option value="Information Technology">Information Technology</option>
-                  <option value="Electronics and Communication Engineering">Electronics and Communication Engineering</option>
+                  <option value="Electronics and Communication Engineering">
+                    Electronics and Communication Engineering
+                  </option>
                   <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
                   <option value="Aeronautical Engineering">Aeronautical Engineering</option>
                   <option value="Mechanical Engineering">Mechanical Engineering</option>
                   <option value="Civil Engineering">Civil Engineering</option>
                 </select>
+                {errors.department && <span className="error-message">{errors.department}</span>}
                 <input
                   type="text"
                   name="batchName"
@@ -277,6 +390,7 @@ const StudentData = () => {
                   placeholder="Batch Name"
                   required
                 />
+                {errors.batchName && <span className="error-message">{errors.batchName}</span>}
                 <div className="form-buttons">
                   <button type="submit" className="register-submit-button">
                     {isEditing ? "Update" : "Register"}
@@ -310,7 +424,9 @@ const StudentData = () => {
                   <option value="">Select Department</option>
                   <option value="Computer Science and Engineering">Computer Science and Engineering</option>
                   <option value="Information Technology">Information Technology</option>
-                  <option value="Electronics and Communication Engineering">Electronics and Communication Engineering</option>
+                  <option value="Electronics and Communication Engineering">
+                    Electronics and Communication Engineering
+                  </option>
                   <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
                   <option value="Aeronautical Engineering">Aeronautical Engineering</option>
                   <option value="Mechanical Engineering">Mechanical Engineering</option>
@@ -375,5 +491,5 @@ const StudentData = () => {
   )
 }
 
-export default StudentData
+export default StudentData;
 
