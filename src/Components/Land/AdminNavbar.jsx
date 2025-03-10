@@ -4,9 +4,9 @@ import "./AdminNavbar.css";
 
 const Navbar = () => {
   return (
-    <nav className="navbar">
-      <div className="logo">DAYOFF DASHBOARD</div>
-      <ul className="nav-links">
+    <nav className="admin-navbar">
+      <div className="admin-logo">DAYOFF DASHBOARD</div>
+      <ul className="admin-nav-links">
         <li><a href="/faculty-data">Faculty</a></li>
         <li><a href="/student-data">Student</a></li>
         <li><a href="/batch-data">Batch</a></li>
@@ -14,7 +14,10 @@ const Navbar = () => {
         <li><a href="/timetable-data">Timetable</a></li>
         
       </ul>
-      <button className="btn-get-started"><a href="/">Logout</a></button>
+      <div class="admin-nav-right">
+        <li><a href="/">Logout</a></li>
+        <li><a href="/admin-profile">Profile</a></li>
+    </div>
     </nav>
   );
 };

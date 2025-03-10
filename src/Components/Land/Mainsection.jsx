@@ -18,7 +18,7 @@ const MainSection = () => {
               <button type="submit" className="faculty-login"><a href="/faculty/login">Faculty Login</a></button>
             </li>
             <li>
-              <button type="submit" className="student-login"><a href="/student-login">Student Login</a></button>
+              <button type="submit" className="student-login"><a href="/student/login">Student Login</a></button>
             </li>
             
           </ul>

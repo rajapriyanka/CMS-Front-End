@@ -116,9 +116,20 @@ const CourseData = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target
 
-    // Prevent numeric input for title field
-    if (name === "title" && /\d/.test(value.slice(-1))) {
-      return // Don't update state if the last character typed is a number
+    // For title field: prevent numeric and special characters
+    if (name === "title") {
+      // Only allow letters and spaces
+      if (!/^[A-Za-z\s]*$/.test(value)) {
+        return // Don't update state if input contains numbers or special characters
+      }
+    }
+
+    // For code field: prevent special characters but allow alphanumeric
+    if (name === "code") {
+      // Only allow alphanumeric characters
+      if (!/^[A-Za-z0-9]*$/.test(value)) {
+        return // Don't update state if input contains special characters
+      }
     }
 
     // Prevent negative values for contactPeriods field
@@ -135,12 +146,20 @@ const CourseData = () => {
     const newErrors = {}
     if (!formData.title.trim()) {
       newErrors.title = "Title is required"
-    } else if (/\d/.test(formData.title)) {
-      newErrors.title = "Title should not contain numeric values"
+    } else if (formData.title.trim().length < 5) {
+      newErrors.title = "Title should have at least 5 characters"
+    } else if (/[^A-Za-z\s]/.test(formData.title)) {
+      newErrors.title = "Title should only contain letters and spaces"
     }
+
     if (!formData.code.trim()) {
       newErrors.code = "Code is required"
+    } else if (formData.code.trim().length < 5) {
+      newErrors.code = "Code should have at least 5 characters"
+    } else if (/[^A-Za-z0-9]/.test(formData.code)) {
+      newErrors.code = "Code should only contain alphanumeric characters"
     }
+
     if (!formData.contactPeriods.trim()) {
       newErrors.contactPeriods = "Contact Periods is required"
     } else if (Number.parseInt(formData.contactPeriods) < 0) {

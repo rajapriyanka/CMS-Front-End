@@ -45,7 +45,7 @@ function AdminLogin() {
         <h2>Admin Login</h2>
         {error && <p className="error-message">{error}</p>}
         <form onSubmit={handleSubmit}>
-          <div className="input-group">
+          <div className="admin-login-input-group">
             <input
               type="email"
               placeholder="Email"
@@ -54,7 +54,7 @@ function AdminLogin() {
               required
             />
           </div>
-          <div className="input-group">
+          <div className="admin-login-input-group">
             <input
               type="password"
               placeholder="Password"

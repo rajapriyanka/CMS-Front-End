@@ -95,13 +95,16 @@ const FacultyData = () => {
     } else if (!/^[A-Za-z\s]+$/.test(formData.name)) {
       newErrors.name = "Name should contain only alphabets."
       valid = false
+    } else if (formData.name.trim().length < 5) {
+      newErrors.name = "Name should have at least 5 characters."
+      valid = false
     }
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required."
-      valid = false
-    } else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i.test(formData.email)) {
-      newErrors.email = "Enter a valid email address."
-      valid = false
+      newErrors.email = "Email is required.";
+      valid = false;
+    } else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|in|org)$/i.test(formData.email)) {
+      newErrors.email = "Enter a valid email address with '.com', '.in', or '.org' domain.";
+      valid = false;
     }
     if (!formData.department || formData.department === "Select Department") {
       newErrors.department = "Please select a valid department."
@@ -117,7 +120,11 @@ const FacultyData = () => {
     } else if (!/^\d{10}$/.test(formData.mobileNo)) {
       newErrors.mobileNo = "Mobile number must be exactly 10 digits."
       valid = false
+    } else if (/^[0-5]/.test(formData.mobileNo)) {
+      newErrors.mobileNo = "Mobile number should not start with digits 0-5."
+      valid = false
     }
+    
 
     setErrors(newErrors)
     console.log("Form validation result:", valid, newErrors)
@@ -138,6 +145,11 @@ const FacultyData = () => {
     if (name === "name") {
       // Only update if the value doesn't contain numbers
       if (!/\d/.test(value)) {
+        setFormData({ ...formData, [name]: value })
+      }
+    } else if (name === "mobileNo") {
+      // For mobile number, check if it starts with digits 0-5
+      if (value === "" || (!/^[0-5]/.test(value) && /^\d*$/.test(value))) {
         setFormData({ ...formData, [name]: value })
       }
     } else {
@@ -414,4 +426,3 @@ const FacultyData = () => {
 }
 
 export default FacultyData;
-

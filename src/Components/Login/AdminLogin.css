@@ -35,12 +35,12 @@
     color: #025d1f;
   }
   
-  .input-group {
+  .admin-login-input-group {
     position: relative;
     margin-bottom: 15px;
   }
   
-  .input-group input {
+  .admin-login-input-group input {
     width: 80%;
     padding: 10px 40px 10px 10px;
     border: 1px solid #ddd;

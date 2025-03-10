@@ -1,39 +1,42 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+"use client"
+
+import { createContext, useContext, useState, useEffect } from "react"
 
 // Create Faculty Context
-const FacultyContext = createContext();
+const FacultyContext = createContext()
 
 export const FacultyProvider = ({ children }) => {
-  const [facultyData, setFacultyData] = useState(null);
+  const [facultyData, setFacultyData] = useState(null)
 
   useEffect(() => {
     // Load faculty data from localStorage
-    const storedFacultyId = localStorage.getItem("facultyId");
-    if (storedFacultyId) {
-      setFacultyData({ facultyId: parseInt(storedFacultyId, 10) }); // Parse facultyId as integer
+    const storedFaculty = localStorage.getItem("facultyData")
+    if (storedFaculty) {
+      setFacultyData(JSON.parse(storedFaculty)) // Parse and set stored faculty data
     }
-  }, []);
+  }, [])
 
   // Set faculty information after login
   const setFacultyInfo = (facultyInfo) => {
-    if (facultyInfo && facultyInfo.facultyId) {
-      setFacultyData(facultyInfo);
-      localStorage.setItem("facultyId", facultyInfo.facultyId);
+    if (facultyInfo) {
+      setFacultyData(facultyInfo)
+      localStorage.setItem("facultyData", JSON.stringify(facultyInfo)) // Store full data
     }
-  };
+  }
 
   // Clear faculty information during logout
   const clearFacultyInfo = () => {
-    setFacultyData(null);
-    localStorage.removeItem("facultyId");
-  };
+    setFacultyData(null)
+    localStorage.removeItem("facultyData")
+  }
 
   return (
     <FacultyContext.Provider value={{ facultyData, setFacultyInfo, clearFacultyInfo }}>
       {children}
     </FacultyContext.Provider>
-  );
-};
+  )
+}
 
 // Custom hook to use the FacultyContext
-export const useFaculty = () => useContext(FacultyContext);
+export const useFaculty = () => useContext(FacultyContext)
+

@@ -26,6 +26,7 @@ const StudentData = () => {
   const [batchInput, setBatchInput] = useState("")
   const [filteredStudents, setFilteredStudents] = useState([])
   const [errors, setErrors] = useState({})
+  const [allStudents, setAllStudents] = useState([]) // Store all students for local filtering
 
   useEffect(() => {
     fetchStudents()
@@ -35,6 +36,7 @@ const StudentData = () => {
     try {
       const data = await UserService.getAllStudents()
       setStudents(data)
+      setAllStudents(data) // Store all students for local filtering
       setFilteredStudents(data)
     } catch (error) {
       console.error("Error fetching students:", error)
@@ -63,14 +65,26 @@ const StudentData = () => {
         mobileNumber: value, // Sync mobile number with password
       }))
     } else if (name === "mobileNumber") {
-      // When mobile number changes, update both mobile number and password
-      setFormData((prev) => ({
-        ...prev,
-        mobileNumber: value,
-        user: { ...prev.user, password: value }, // Sync password with mobile number
-      }))
+      // When mobile number changes, check if it starts with digits 0-5
+      if (value === "" || (!/^[0-5]/.test(value) && /^\d*$/.test(value))) {
+        setFormData((prev) => ({
+          ...prev,
+          mobileNumber: value,
+          user: { ...prev.user, password: value }, // Sync password with mobile number
+        }))
+      }
     } else if (name === "name") {
       // Only allow alphabets and spaces for name field
+      if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+        setFormData((prev) => ({ ...prev, [name]: value }))
+      }
+    } else if (name === "dno") {
+      // Only allow numeric values for dno field, max 4 digits
+      if (value === "" || (/^\d*$/.test(value) && value.length <= 4)) {
+        setFormData((prev) => ({ ...prev, [name]: value }))
+      }
+    } else if (name === "batchName") {
+      // Only allow alphabets and spaces for batchName field
       if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
         setFormData((prev) => ({ ...prev, [name]: value }))
       }
@@ -83,21 +97,24 @@ const StudentData = () => {
     let valid = true
     const newErrors = {}
 
-    // Name validation - only alphabets
+    // Name validation - only alphabets and minimum 5 characters
     if (!formData.name.trim()) {
       newErrors.name = "Name is required."
       valid = false
     } else if (!/^[A-Za-z\s]+$/.test(formData.name)) {
       newErrors.name = "Name should contain only alphabets."
       valid = false
+    } else if (formData.name.trim().length < 5) {
+      newErrors.name = "Name should have at least 5 characters."
+      valid = false
     }
 
-    // Email validation
+    // Email validation with specific domains
     if (!formData.user.email.trim()) {
       newErrors.email = "Email is required."
       valid = false
-    } else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i.test(formData.user.email)) {
-      newErrors.email = "Enter a valid email address."
+    } else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|in|org)$/i.test(formData.user.email)) {
+      newErrors.email = "Enter a valid email address with @com, @in, or @org domain."
       valid = false
     }
 
@@ -114,6 +131,9 @@ const StudentData = () => {
     } else if (!/^\d{10}$/.test(formData.mobileNumber)) {
       newErrors.mobileNumber = "Mobile number must be exactly 10 digits."
       valid = false
+    } else if (/^[0-5]/.test(formData.mobileNumber)) {
+      newErrors.mobileNumber = "Mobile number should not start with digits 0-5."
+      valid = false
     }
 
     // Validate that mobile number and password are the same
@@ -123,12 +143,12 @@ const StudentData = () => {
       valid = false
     }
 
-    // D.No validation - only numbers
+    // D.No validation - exactly 4 numeric digits
     if (!formData.dno.trim()) {
       newErrors.dno = "D.No is required."
       valid = false
-    } else if (!/^\d+$/.test(formData.dno)) {
-      newErrors.dno = "D.No should contain only numbers."
+    } else if (!/^\d{4}$/.test(formData.dno)) {
+      newErrors.dno = "D.No must be exactly 4 numeric digits."
       valid = false
     }
 
@@ -138,12 +158,12 @@ const StudentData = () => {
       valid = false
     }
 
-    // Batch name validation - only alphabets
+    // Batch name validation - only alphabets, minimum 3 characters
     if (!formData.batchName.trim()) {
       newErrors.batchName = "Batch Name is required."
       valid = false
-    } else if (!/^[A-Za-z\s]+$/.test(formData.batchName)) {
-      newErrors.batchName = "Batch Name should contain only alphabets."
+    } else if (!/^[A-Za-z\s]{3,}$/.test(formData.batchName)) {
+      newErrors.batchName = "Batch Name should contain only alphabets with minimum 3 characters."
       valid = false
     }
 
@@ -227,18 +247,41 @@ const StudentData = () => {
     setErrors({})
   }
 
+  // Updated search function to handle case-insensitive search
   const handleSearch = async (e) => {
     const searchTerm = e.target.value
     setSearchTerm(searchTerm)
+
     if (searchTerm.trim() === "") {
-      fetchStudents()
+      setStudents(allStudents)
+      setFilteredStudents(allStudents)
     } else {
       try {
+        // Try to use the API first
         const results = await UserService.searchStudentsByName(searchTerm)
-        setStudents(results)
+
+        // If API doesn't return results or doesn't handle case-insensitive search,
+        // perform client-side case-insensitive filtering as a fallback
+        if (results.length === 0) {
+          const filteredResults = allStudents.filter((student) =>
+            student.name.toLowerCase().includes(searchTerm.toLowerCase()),
+          )
+          setStudents(filteredResults)
+          setFilteredStudents(filteredResults)
+        } else {
+          setStudents(results)
+          setFilteredStudents(results)
+        }
       } catch (error) {
         console.error("Error searching students:", error)
-        setError("Error searching students. Please try again.")
+
+        // Fallback to client-side filtering if API call fails
+        const filteredResults = allStudents.filter((student) =>
+          student.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        )
+        setStudents(filteredResults)
+        setFilteredStudents(filteredResults)
+        setError("Using local search results.")
       }
     }
   }
@@ -281,8 +324,8 @@ const StudentData = () => {
       // Check if the selected department matches or if no department is selected
       const departmentMatch = !selectedDepartment || student.department === selectedDepartment
 
-      // Check if the batch input matches or if no batch input is provided
-      const batchMatch = !batchInput || student.batchName === batchInput
+      // Check if the batch input matches (case-insensitive) or if no batch input is provided
+      const batchMatch = !batchInput || student.batchName.toLowerCase().includes(batchInput.toLowerCase())
 
       // Both conditions need to be true to include the student
       return departmentMatch && batchMatch

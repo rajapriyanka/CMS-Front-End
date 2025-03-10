@@ -78,6 +78,9 @@ const BatchData = () => {
     if (!formData.batchName.trim()) {
       newErrors.batchName = "Batch name is required."
       valid = false
+    } else if (formData.batchName.trim().length < 3) {
+      newErrors.batchName = "Batch name should have at least 3 characters."
+      valid = false
     } else if (/\d/.test(formData.batchName)) {
       newErrors.batchName = "Batch name should not contain numeric values."
       valid = false
