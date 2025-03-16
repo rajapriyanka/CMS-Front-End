@@ -77,6 +77,7 @@ const CourseData = () => {
       department: "",
     })
     setErrors({})
+    setMessage("")
   }
 
   const handleListClick = () => {
@@ -85,6 +86,7 @@ const CourseData = () => {
     setSelectedSemester("")
     setSelectedDepartment("")
     setFilteredCourses(courses)
+    setMessage("")
   }
 
   const handleEdit = (course) => {
@@ -100,6 +102,7 @@ const CourseData = () => {
     setShowForm(true)
     setShowList(false)
     setErrors({})
+    setMessage("")
   }
 
   const handleDelete = async (id) => {
@@ -107,8 +110,10 @@ const CourseData = () => {
       try {
         await UserService.deleteCourse(id)
         fetchCourses()
+        setMessage("Course deleted successfully")
       } catch (error) {
         console.error("Error deleting course:", error)
+        setMessage("Error deleting course. Please try again.")
       }
     }
   }
@@ -132,14 +137,37 @@ const CourseData = () => {
       }
     }
 
-    // Prevent negative values for contactPeriods field
-    if (name === "contactPeriods" && value.includes("-")) {
-      return // Don't update state if the value contains a negative sign
+    // For contactPeriods field: prevent negative values and zero
+    if (name === "contactPeriods") {
+      // Check if the value is empty (allow this for initial input)
+      if (value === "") {
+        setFormData((prevState) => ({ ...prevState, [name]: value }))
+        return
+      }
+
+      // Convert to number for validation
+      const numValue = Number(value)
+
+      // Check if it's not a number, is negative, or is zero
+      if (isNaN(numValue) || numValue <= 0) {
+        // Set error message but don't update the form value
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: numValue === 0 ? "Contact Periods cannot be zero" : "Contact Periods must be a positive number",
+        }))
+        return
+      }
+
+      // Clear error if value is valid
+      setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }))
     }
 
     setFormData((prevState) => ({ ...prevState, [name]: value }))
+
     // Clear the error for this field when the user starts typing
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }))
+    if (name !== "contactPeriods" || Number(value) > 0) {
+      setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }))
+    }
   }
 
   const validateForm = () => {
@@ -162,17 +190,26 @@ const CourseData = () => {
 
     if (!formData.contactPeriods.trim()) {
       newErrors.contactPeriods = "Contact Periods is required"
-    } else if (Number.parseInt(formData.contactPeriods) < 0) {
-      newErrors.contactPeriods = "Contact Periods should not be negative"
+    } else {
+      const contactPeriodsValue = Number(formData.contactPeriods)
+      if (isNaN(contactPeriodsValue)) {
+        newErrors.contactPeriods = "Contact Periods must be a number"
+      } else if (contactPeriodsValue <= 0) {
+        newErrors.contactPeriods =
+          contactPeriodsValue === 0 ? "Contact Periods cannot be zero" : "Contact Periods cannot be negative"
+      }
     }
+
     if (!formData.semesterNo.trim()) {
       newErrors.semesterNo = "Semester Number is required"
     } else if (!semesters.includes(formData.semesterNo)) {
       newErrors.semesterNo = "Invalid Semester Number"
     }
+
     if (!formData.department) {
       newErrors.department = "Department is required"
     }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -254,6 +291,13 @@ const CourseData = () => {
           <button className="list-button" onClick={handleListClick}>
             List of Courses
           </button>
+          <input
+            type="file"
+            accept=".xlsx, .xls"
+            onChange={handleFileChange}
+            ref={fileInputRef}
+            style={{ display: "none" }}
+          />
         </div>
 
         <div className="course-main-content">
@@ -295,7 +339,8 @@ const CourseData = () => {
                     value={formData.contactPeriods}
                     onChange={handleInputChange}
                     className="form-input"
-                    min="0"
+                    min="1" // Changed from 0 to 1 to prevent zero values
+                    step="1" // Ensure only whole numbers
                   />
                   {errors.contactPeriods && <span className="error-message">{errors.contactPeriods}</span>}
                 </div>
@@ -351,9 +396,39 @@ const CourseData = () => {
                   </select>
                   {errors.department && <span className="error-message">{errors.department}</span>}
                 </div>
+
                 <div className="form-actions">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current.click()}
+                    disabled={isUploading}
+                    className="upload-button"
+                  >
+                    {isUploading ? "Uploading..." : "Upload Excel"}
+                  </button>
                   <button type="submit" className="register-submit-button">
                     {editingCourse ? "Update" : "Register"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={
+                      editingCourse
+                        ? handleListClick
+                        : () => {
+                            setFormData({
+                              title: "",
+                              code: "",
+                              contactPeriods: "",
+                              semesterNo: "",
+                              type: "ACADEMIC",
+                              department: "",
+                            })
+                            setErrors({})
+                          }
+                    }
+                    className="cancel-button"
+                  >
+                    Cancel
                   </button>
                 </div>
               </form>
@@ -447,5 +522,5 @@ const CourseData = () => {
   )
 }
 
-export default CourseData;
+export default CourseData
 

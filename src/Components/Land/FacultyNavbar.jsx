@@ -1,23 +1,55 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 import "./FacultyNavbar.css";
-// import { Navigate } from "react-router-dom";
 
 const FacultyNavbar = () => {
   return (
     <nav className="fac-navbar">
       <div className="fac-logo">DAYOFF DASHBOARD</div>
       <ul className="fac-nav-links">
-        <li><a href="/fac-course-data">Courses</a></li>        
-        <li><a href="/fac-time-data">Time Table</a></li>
-        <li><a href="/fac-leave-data">Leave</a></li>
-        <li><a href="/fac-student-leave">Student Leave</a></li>
-        <li><a href="/fac-attendance-data">Attendance</a></li>
-        
+        <li>
+          <NavLink to="/fac-course-data" activeClassName="active">
+            Courses
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/fac-time-data" activeClassName="active">
+            Time Table
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/fac-leave-data" activeClassName="active">
+            Leave
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/fac-student-leave" activeClassName="active">
+            Student Leave
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/fac-attendance-data" activeClassName="active">
+            Attendance
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/fac-substitute-data" activeClassName="active">
+           Substitute
+          </NavLink>
+        </li>
       </ul>
-      <div class="fac-nav-right">
-        <li><a href="/">Logout</a></li>
-        <li><a href="/fac-profile">Profile</a></li>
-    </div>
+      <div className="fac-nav-right">
+        <li>
+          <NavLink to="/" activeClassName="active">
+            Logout
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/fac-profile" activeClassName="active">
+            Profile
+          </NavLink>
+        </li>
+      </div>
     </nav>
   );
 };

@@ -509,7 +509,7 @@ const StudentData = () => {
                   {filteredStudents.map((student) => (
                     <tr key={student.id}>
                       <td>{student.name}</td>
-                      <td>{student.user?.email || "N/A"}</td>
+                      <td>{student.email || "N/A"}</td>
                       <td>{student.mobileNumber || "N/A"}</td>
                       <td>{student.dno || "N/A"}</td>
                       <td>{student.department || "N/A"}</td>

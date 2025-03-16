@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
 import { format } from "date-fns"
 import axios from "axios"
+import "./FacultyStudentLeaves.css"
+import FacultyNavbar from "../Land/FacultyNavbar"
 
 const BASE_URL = "http://localhost:8080"
 
@@ -115,16 +117,13 @@ const FacultyStudentLeaves = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-md w-full">
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-bold">Student Leave Requests</h2>
-          <p className="text-gray-500">Manage student leave requests</p>
-        </div>
-        
-        <div className="p-4">
-          <div className="mb-4 border-b">
-            <div className="flex">
+    <div className="fac-stud-leave-page">
+      <FacultyNavbar />
+      <div className="fac-stud-leave-container">
+        <div className="fac-stud-leave-sidebar">
+        <h2 >Student Leave Requests</h2>
+          <div className="fac-stud-leave-sidebar-btns">
+            
               <button 
                 className={`px-4 py-2 ${activeTab === "pending" ? "border-b-2 border-blue-500 font-medium" : ""}`}
                 onClick={() => setActiveTab("pending")}
@@ -137,24 +136,18 @@ const FacultyStudentLeaves = () => {
               >
                 All Requests
               </button>
-            </div>
+           
           </div>
           
-          {renderLeaveTable()}
+          
         </div>
         
-        <div className="p-4 border-t flex justify-between">
-          <button 
-            className="px-4 py-2 border rounded hover:bg-gray-50"
-            onClick={() => navigate("/faculty/dashboard")}
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
+        <div className="fac-stud-leave-main-content">
+          {renderLeaveTable()}
+        
 
-      {isDialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+           {isDialogOpen && (
+           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
             <div className="mb-4">
               <h3 className="text-lg font-medium">
@@ -168,7 +161,7 @@ const FacultyStudentLeaves = () => {
             </div>
             
             {selectedLeave && (
-              <div className="space-y-4 py-2">
+              <div className="fac-stud-leave-req-details">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <p className="text-sm font-medium">Student:</p>
@@ -209,31 +202,31 @@ const FacultyStudentLeaves = () => {
                     className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                <div className="mt-6 flex">
+  <button 
+    className="cancel-btn"
+    onClick={() => setIsDialogOpen(false)}
+  >
+    Cancel
+  </button>
+  <button 
+    onClick={handleAction}
+    disabled={isLoading}
+    className={actionType === "approve" ? "approve-btn" : "reject-btn"}
+  >
+    {isLoading ? "Processing..." : actionType === "approve" ? "Approve" : "Reject"}
+  </button>
+</div>
+
               </div>
             )}
             
-            <div className="mt-6 flex justify-end space-x-2">
-              <button 
-                className="px-4 py-2 border rounded hover:bg-gray-50"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleAction}
-                disabled={isLoading}
-                className={`px-4 py-2 rounded text-white ${
-                  actionType === "approve" 
-                    ? "bg-blue-500 hover:bg-blue-600" 
-                    : "bg-red-500 hover:bg-red-600"
-                }`}
-              >
-                {isLoading ? "Processing..." : actionType === "approve" ? "Approve" : "Reject"}
-              </button>
-            </div>
+            
           </div>
         </div>
       )}
+      </div>
+      </div>
     </div>
   )
 
@@ -251,8 +244,8 @@ const FacultyStudentLeaves = () => {
     }
     
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+      <div className="fac-stud-leave-table-container">
+        <table className="fac-stud-leave-table">
           <thead>
             <tr className="bg-gray-100">
               <th className="p-2 text-left">Student</th>
@@ -273,15 +266,15 @@ const FacultyStudentLeaves = () => {
                 <td className="p-2">{getStatusBadge(leave.status)}</td>
                 <td className="p-2">
                   {leave.status === "PENDING" && (
-                    <div className="flex space-x-2">
+                    <div className="fac-stud-leave-table-btns">
                       <button 
-                        className="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="fac-stud-leave-aprove-btn"
                         onClick={() => openActionDialog(leave, "approve")}
                       >
                         Approve
                       </button>
                       <button 
-                        className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                        className="fac-stud-leave-rej-btn"
                         onClick={() => openActionDialog(leave, "reject")}
                       >
                         Reject

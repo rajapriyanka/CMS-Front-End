@@ -13,6 +13,7 @@ import FacultyDashboard from "./Components/FacultyData/FacultyDashboard";
 import FacultyCourse from "./Components/FacultyData/FacultyCourse";
 import FacultyLeave from "./Components/FacultyData/FacultyLeave";
 import FacultyTime from "./Components/FacultyData/FacultyTime";
+import FacultySubstitute from "./Components/FacultyData/FacultySubstitute"; // New component
 import TimetableGeneration from "./Components/Timetable/TimetableGeneration";
 import ViewTimetable from "./Components/Timetable/ViewTimetable";
 import { FacultyProvider } from "./Context/FacultyContext";
@@ -29,6 +30,7 @@ import FacultyStudentLeaves from "./Components/FacultyData/FacultyStudentLeaves"
 import StudentLeaveData from "./Components/StudentData/StudentLeaveData";
 import StudentAttendanceData from "./Components/StudentData/StudentAttendanceData";
 import StudentProfile from "./Components/StudentData/StudentProfile";
+import SubstituteEmailAction from "./Components/EmailAction/SubstituteEmailAction"; // New component
 
 // Protected route for Admin
 const AdminProtectedRoute = ({ element }) => {
@@ -75,11 +77,13 @@ const App = () => {
             <Route path="/fac-course-data" element={<FacultyProtectedRoute element={<FacultyCourse />} />} />
             <Route path="/fac-leave-data" element={<FacultyProtectedRoute element={<FacultyLeave />} />} />
             <Route path="/fac-time-data" element={<FacultyProtectedRoute element={<FacultyTime />} />} />
+            <Route path="/fac-substitute-data" element={<FacultyProtectedRoute element={<FacultySubstitute />} />} />
             <Route path="/fac-attendance-data" element={<FacultyProtectedRoute element={<AttendancePage/>} />} />
             <Route path="/generate-timetable" element={<FacultyProtectedRoute element={<TimetableGeneration />} />} />
             <Route path="/view-timetable" element={<FacultyProtectedRoute element={<ViewTimetable />} />} />
             <Route path="/fac-profile" element={<FacultyProtectedRoute element={<FacultyProfile />} />} />
             <Route path="/fac-student-leave" element={<FacultyProtectedRoute element={<FacultyStudentLeaves />} />} />
+            
             {/* Student route */}
             <Route path="/student/login" element={<StudentLogin />} />
             <Route path="/student-dashboard" element={<StudentProtectedRoute element={<StudentDashboard />} />} />
@@ -87,6 +91,10 @@ const App = () => {
             <Route path="/stud-leave-data" element={<StudentProtectedRoute element={<StudentLeaveData />} />} />
             <Route path="/stud-attendance-data" element={<StudentProtectedRoute element={<StudentAttendanceData />} />} />
             <Route path="/stud-profile" element={<StudentProtectedRoute element={<StudentProfile />} />} />
+            
+            {/* Email action routes */}
+            <Route path="/email-action" element={<SubstituteEmailAction />} />
+            
             {/* Fallback route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

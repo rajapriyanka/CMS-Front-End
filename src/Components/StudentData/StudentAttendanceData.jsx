@@ -3,6 +3,7 @@ import { useStudent } from "./../../Context/StudentContext";
 
 import AttendanceService from "./../../Service/AttendanceService"
 import "./StudentAttendanceData.css";
+import StudentNavbar from "../Land/StudentNavbar"
 
 const StudentAttendanceData = () => {
   const { studentInfo } = useStudent();
@@ -94,11 +95,13 @@ const StudentAttendanceData = () => {
   };
 
   return (
-    <div className="attendance-container">
-      <div className="attendance-header">
+    <div className="stud-attendance-page">
+      <StudentNavbar />
+    <div className="stud-attendance-container">
+      <div className="stud-attendance-header">
         <h2>Attendance Dashboard</h2>
-        <div className="semester-filter">
-          <label htmlFor="semester-select">Semester:</label>
+        <div className="stud-semester-filter">
+          <label htmlFor="stud-semester-select">Semester:</label>
           <select
             id="semester-select"
             value={semester}
@@ -115,7 +118,7 @@ const StudentAttendanceData = () => {
       </div>
 
       {loading ? (
-        <div className="loading-spinner">
+        <div className="stud-loading-spinner">
           <div className="spinner"></div>
           <p>Loading attendance data...</p>
         </div>
@@ -155,8 +158,8 @@ const StudentAttendanceData = () => {
             </div>
           </div>
 
-          <div className="attendance-table-container">
-            <table className="attendance-table">
+          <div className="stud-attendance-table-container">
+            <table className="stud-attendance-table">
               <thead>
                 <tr>
                   <th>Course Code</th>
@@ -175,8 +178,8 @@ const StudentAttendanceData = () => {
                     <td>{item.facultyName}</td>
                     <td>{item.semesterNo}</td>
                     <td>
-                      <div className="progress-container">
-                        <div className="progress-bar">
+                      <div className="stud-progress-container">
+                        <div className="stud-progress-bar">
                           <div
                             className={`progress-fill ${getStatusClass(
                               item.attendancePercentage
@@ -209,7 +212,7 @@ const StudentAttendanceData = () => {
             </table>
           </div>
 
-          <div className="attendance-info">
+          <div className="stud-attendance-info">
             <div className="info-item">
               <div className="info-icon">ℹ️</div>
               <p>
@@ -220,6 +223,7 @@ const StudentAttendanceData = () => {
           </div>
         </>
       )}
+    </div>
     </div>
   );
 };

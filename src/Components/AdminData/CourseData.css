@@ -31,7 +31,7 @@
 .course-sidebar button {
   background-color: white;
   color: #013c28;
-  padding: 20px 30px 20px 30px;
+  padding: 20px 30px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -56,13 +56,8 @@
   flex-direction: column;
   padding: 20px;
   box-sizing: border-box;
-}
-
-.course-main-content {
-  flex-grow: 1;
-  overflow-y: auto; /* Enables vertical scrollbar */
-  padding: 20px;
-  height: 80vh; /* Full height */
+  overflow-y: auto;
+  height: 80vh;
 }
 
 /* Search Bar and Course List Layout */
@@ -131,18 +126,18 @@
   background-color: #013c28;
   color: white;
 }
+
 .edit-button:hover {
   background-color: #025d1f;
-  color: white;
 }
 
 .delete-button {
   background-color: #f44336;
   color: white;
 }
+
 .delete-button:hover {
   background-color: #900c03;
-  color: white;
 }
 
 /* Registration Form */
@@ -193,71 +188,44 @@
   font-weight: bold;
 }
 
+/* Updated Button Layout */
 .register-form .form-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 16px;
+  justify-content: flex-start; /* Aligns buttons to the left */
+  align-items: center;
+  margin-top: 20px;
+  width: 100%;
+  padding-left: 20px; /* Ensures Upload button starts at the left margin */
+  gap: 20px; /* Equal spacing between buttons */
+}
+
+/* Ensuring All Buttons Are Equal in Size */
+.register-form .upload-button {
+  margin-left: 0; /* Makes Upload button start at left margin */
 }
 
 .register-form .cancel-button,
-.register-form .register-submit-button {
+.register-form .register-submit-button,
+.register-form .upload-button {
   background-color: #013c28;
   color: white;
   padding: 10px 16px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  width: 150px; /* Fixed width for all buttons */
+  height: 45px; /* Consistent button height */
+  text-align: center;
+  font-size: 1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .register-form .cancel-button:hover,
-.register-form .register-submit-button:hover {
+.register-form .register-submit-button:hover,
+.register-form .upload-button:hover {
   background-color: #025d1f;
 }
-
-.error-text {
-  color: red;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  margin-left: 20px;
-}
-
-.response-message {
-  margin-top: 20px;
-  padding: 10px;
-  border-radius: 5px;
-  font-weight: bold;
-  text-align: center;
-}
-
-.response-message.success {
-  background-color: #4caf50;
-  color: white;
-}
-
-.response-message.error {
-  background-color: #f44336;
-  color: white;
-}
-
-/* Add these styles at the end of the file */
-.upload-button {
-  background-color: #013c28;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 100px;
-  margin-left: 20px;
-  
-}
-
-.upload-button:hover {
-  background-color: #025d1f;
-}
-
-.upload-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-

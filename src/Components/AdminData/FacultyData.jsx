@@ -28,13 +28,12 @@ const FacultyData = () => {
   const [filteredFaculties, setFilteredFaculties] = useState([])
 
   const departments = [
-    "Select Department",
     "Computer Science and Engineering",
+    "Information Technology",
     "Electronics and Communication Engineering",
     "Electrical and Electronics Engineering",
     "Mechanical Engineering",
     "Civil Engineering",
-    "Information Technology",
     "Aeronautical Engineering",
   ]
 
@@ -308,7 +307,7 @@ const FacultyData = () => {
                 </select>
                 {errors.department && <span className="error-message">{errors.department}</span>}
                 <select name="designation" value={formData.designation} onChange={handleInputChange}>
-                  <option value="">Select Designation</option>
+                  <option value=""></option>
                   {designations.map((designation, index) => (
                     <option key={index} value={designation}>
                       {designation}
@@ -367,7 +366,7 @@ const FacultyData = () => {
   onChange={(e) => setSelectedDesignation(e.target.value)}
   className="designation-select"
 >
-  <option value="">Select Designation</option>
+  
   <option value="All Designations">All Designations</option>
   {designations.map((designation, index) => (
     <option key={index} value={designation}>

@@ -1,21 +1,40 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 import "./StudentNavbar.css";
-// import { Navigate } from "react-router-dom";
 
 const StudentNavbar = () => {
   return (
     <nav className="student-navbar">
       <div className="student-logo">DAYOFF DASHBOARD</div>
       <ul className="student-nav-links">
-        <li><a href="/stud-attendance-data">Attendance</a></li>        
-        <li><a href="/stud-time-data">Time Table</a></li>
-        <li><a href="/stud-leave-data">Leave</a></li>
-    
+        <li>
+          <NavLink to="/stud-attendance-data" activeClassName="active">
+            Attendance
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/stud-time-data" activeClassName="active">
+            Time Table
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/stud-leave-data" activeClassName="active">
+            Leave
+          </NavLink>
+        </li>
       </ul>
-      <div class="stud-nav-right">
-        <li><a href="/">Logout</a></li>
-        <li><a href="/stud-profile">Profile</a></li>
-    </div>
+      <div className="stud-nav-right">
+        <li>
+          <NavLink to="/" activeClassName="active">
+            Logout
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/stud-profile" activeClassName="active">
+            Profile
+          </NavLink>
+        </li>
+      </div>
     </nav>
   );
 };

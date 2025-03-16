@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
 import { format } from "date-fns"
 import axios from "axios"
+import "./StudentLeaveData.css"
+import StudentNavbar from "../Land/StudentNavbar"
 
 const BASE_URL = "http://localhost:8080"
 
@@ -169,35 +171,35 @@ const StudentLeaveData = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-md w-full">
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-bold">Student Leave Management</h2>
-          <p className="text-gray-500">Request leave or view your leave history</p>
-        </div>
-        
-        <div className="p-4">
-          <div className="mb-4 border-b">
-            <div className="flex">
+    <div className="stud-leave-page">
+      <StudentNavbar />
+      <div className="stud-leave-container">
+      <div className="stud-leave-sidebar">
+        <h2>Student Leave Management</h2>
+            <div className="stud-leave-sidebar-btns">
               <button 
-                className={`px-4 py-2 ${activeTab === "request" ? "border-b-2 border-blue-500 font-medium" : ""}`}
+                className={` ${activeTab === "request" ? "stud-leave-req-btn" : ""}`}
                 onClick={() => setActiveTab("request")}
               >
                 Request Leave
               </button>
               <button 
-                className={`px-4 py-2 ${activeTab === "history" ? "border-b-2 border-blue-500 font-medium" : ""}`}
+                className={` ${activeTab === "history" ? "stud-leave-his-btn" : ""}`}
                 onClick={() => setActiveTab("history")}
               >
                 Leave History
               </button>
             </div>
           </div>
-          
+        
+        <div className="stud-leave-main-content">
+        <div className="stud-leave-form">
+          <h2>Student Leave Request Form</h2>
           {activeTab === "request" ? (
+            
             <form onSubmit={handleSubmit}>
               <div className="space-y-4 mt-4">
-                <div className="space-y-2">
+                <div className="form-group">
                   <label htmlFor="facultyId" className="block text-sm font-medium">Faculty</label>
                   <select
                     id="facultyId"
@@ -216,7 +218,7 @@ const StudentLeaveData = () => {
                   </select>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="form-group">
                   <label htmlFor="subject" className="block text-sm font-medium">Subject</label>
                   <input
                     id="subject"
@@ -230,7 +232,7 @@ const StudentLeaveData = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
+                <div className="form-group">
                   <label htmlFor="reason" className="block text-sm font-medium">Reason</label>
                   <textarea
                     id="reason"
@@ -244,8 +246,8 @@ const StudentLeaveData = () => {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className="form-row">
+                  <div className="form-group">
                     <label htmlFor="fromDate" className="block text-sm font-medium">From Date</label>
                     <input
                       id="fromDate"
@@ -258,7 +260,7 @@ const StudentLeaveData = () => {
                     />
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className="form-group">
                     <label htmlFor="toDate" className="block text-sm font-medium">To Date</label>
                     <input
                       id="toDate"
@@ -274,7 +276,7 @@ const StudentLeaveData = () => {
                 </div>
               </div>
               
-              <div className="mt-6">
+              <div className="stud-leave-submit-btn">
                 <button 
                   type="submit" 
                   disabled={isLoading}
@@ -284,15 +286,17 @@ const StudentLeaveData = () => {
                 </button>
               </div>
             </form>
+            
           ) : (
+            
             <>
               {isLoading ? (
                 <div className="text-center py-8">Loading leave history...</div>
               ) : leaveHistory.length === 0 ? (
                 <div className="text-center py-8">No leave requests found.</div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
+                <div className="stud-leave-table-container">
+                  <table className="stud-leave-table">
                     <thead>
                       <tr className="bg-gray-100">
                         <th className="p-2 text-left">Subject</th>
@@ -320,15 +324,9 @@ const StudentLeaveData = () => {
               )}
             </>
           )}
-        </div>
+         </div>
         
-        <div className="p-4 border-t flex justify-between">
-          <button 
-            className="px-4 py-2 border rounded hover:bg-gray-50"
-            onClick={() => navigate("/student/dashboard")}
-          >
-            Back to Dashboard
-          </button>
+         
         </div>
       </div>
     </div>

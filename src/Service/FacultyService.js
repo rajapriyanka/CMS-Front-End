@@ -145,6 +145,27 @@ class FacultyService {
       throw new Error(error.response?.data?.message || "Request failed. Please try again.")
     }
   }
+  static getToken() {
+    const token = localStorage.getItem("adminToken") || localStorage.getItem("token")
+    if (!token) {
+      throw new Error("No authentication token found")
+    }
+    return token
+  }
+
+  static async getAllBatches() {
+    try {
+      console.log("FacultyService: Fetching all batches")
+      const response = await axios.get(`${this.BASE_URL}/api/batches`, {
+        headers: { Authorization: `Bearer ${this.getToken()}` },
+      })
+      console.log("FacultyService: Batches received:", response.data)
+      return response.data
+    } catch (error) {
+      console.error("FacultyService: Error fetching batches:", error)
+      throw new Error(error.response?.data?.message || "Failed to fetch batches")
+    }
+  }
 
   static async apiDelete(url) {
     try {

@@ -1,23 +1,50 @@
 import React from "react";
+import { NavLink } from "react-router-dom";
 import "./AdminNavbar.css";
-// import { Navigate } from "react-router-dom";
 
 const Navbar = () => {
   return (
     <nav className="admin-navbar">
       <div className="admin-logo">DAYOFF DASHBOARD</div>
       <ul className="admin-nav-links">
-        <li><a href="/faculty-data">Faculty</a></li>
-        <li><a href="/student-data">Student</a></li>
-        <li><a href="/batch-data">Batch</a></li>
-        <li><a href="/course-data">Course</a></li>
-        <li><a href="/timetable-data">Timetable</a></li>
-        
+        <li>
+          <NavLink to="/faculty-data" activeClassName="active">
+            Faculty
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/student-data" activeClassName="active">
+            Student
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/batch-data" activeClassName="active">
+            Batch
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/course-data" activeClassName="active">
+            Course
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/timetable-data" activeClassName="active">
+            Timetable
+          </NavLink>
+        </li>
       </ul>
-      <div class="admin-nav-right">
-        <li><a href="/">Logout</a></li>
-        <li><a href="/admin-profile">Profile</a></li>
-    </div>
+      <div className="admin-nav-right">
+        <li>
+          <NavLink to="/" activeClassName="active">
+            Logout
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/admin-profile" activeClassName="active">
+            Profile
+          </NavLink>
+        </li>
+      </div>
     </nav>
   );
 };
