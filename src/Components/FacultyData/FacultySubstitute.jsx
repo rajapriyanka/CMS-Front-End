@@ -10,6 +10,8 @@ import FacultyService from "../../Service/FacultyService"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { format } from "date-fns"
+import "./FacultySubstitute.css"
+import FacultyNavbar from "../Land/FacultyNavbar"
 
 const FacultySubstitute = () => {
   const { facultyData } = useFaculty()
@@ -200,8 +202,20 @@ const FacultySubstitute = () => {
   }
 
   const handleDateChange = (e) => {
-    console.log("Selected date:", e.target.value)
-    setSelectedDate(e.target.value)
+    const selectedDate = e.target.value
+    const today = new Date().toISOString().split("T")[0]
+
+    console.log("Selected date:", selectedDate)
+
+    // Validate that the selected date is not in the past
+    if (selectedDate < today) {
+      toast.error("Cannot select a date in the past. Please choose today or a future date.")
+      // Reset to today's date or empty string
+      setSelectedDate(today)
+      return
+    }
+
+    setSelectedDate(selectedDate)
     setSelectedSubstitute("")
     setAvailableFaculty([])
   }
@@ -256,6 +270,13 @@ const FacultySubstitute = () => {
   const handleSubmitRequest = async () => {
     if (!selectedEntry || !selectedDate || !selectedSubstitute || !reason) {
       toast.warning("Please fill all required fields")
+      return
+    }
+
+    // Additional validation for date
+    const today = new Date().toISOString().split("T")[0]
+    if (selectedDate < today) {
+      toast.error("Cannot request substitution for a past date. Please select today or a future date.")
       return
     }
 
@@ -390,56 +411,12 @@ const FacultySubstitute = () => {
   }
 
   // Debug panel
-  const renderDebugPanel = () => {
-    return (
-      <div
-        style={{
-          margin: "20px",
-          padding: "10px",
-          border: "1px solid #ccc",
-          borderRadius: "5px",
-          backgroundColor: "#f5f5f5",
-        }}
-      >
-        <h3>Debug Information</h3>
-        <p>
-          <strong>Faculty Data:</strong>{" "}
-          {facultyData ? `ID: ${facultyData.facultyId}, Name: ${facultyData.name || "N/A"}` : "Not loaded"}
-        </p>
-        <p>
-          <strong>Faculty Data Raw:</strong> {facultyData ? JSON.stringify(facultyData) : "Not loaded"}
-        </p>
-        <p>
-          <strong>Selected Substitute:</strong> {selectedSubstitute || "None"}
-        </p>
-        <p>
-          <strong>Timetable Loaded:</strong> {debug.timetableLoaded ? "Yes" : "No"}
-        </p>
-        <p>
-          <strong>Batches Loaded:</strong> {debug.batchesLoaded ? "Yes" : "No"}
-        </p>
-        <p>
-          <strong>Timetable Entries:</strong> {timetableEntries.length}
-        </p>
-        <p>
-          <strong>Batches:</strong> {batches.length}
-        </p>
-        <p>
-          <strong>Error:</strong> {debug.error || "None"}
-        </p>
-      </div>
-    )
-  }
 
   return (
-    <div>
-      {/* Render debug panel in development */}
-      {process.env.NODE_ENV !== "production" && renderDebugPanel()}
-
-      <div className="faculty-substitute-content">
-        <h2>Faculty Substitution Management</h2>
-
-        <div className="tabs">
+    <div className="fac-subs-page">
+      <FacultyNavbar />
+      <div className="fac-subs-container">
+        <div className="fac-subs-sidebar">
           <button className={activeTab === "request" ? "active" : ""} onClick={() => setActiveTab("request")}>
             Request Substitute
           </button>
@@ -450,266 +427,354 @@ const FacultySubstitute = () => {
             Received Requests
           </button>
         </div>
+        <div className="fac-subs-main-content">
+          <h2>Faculty Substitution Management</h2>
+          {activeTab === "request" && (
+            <div className="request-form">
+              <div className="form-section">
+                <h3>Step 1: Select Class Details</h3>
+                <div className="form-group">
+                  <label>Select Timetable Entry:</label>
+                  <select
+                    value={selectedEntry ? selectedEntry.id : ""}
+                    onChange={(e) => {
+                      const entry = timetableEntries.find((entry) => entry.id.toString() === e.target.value)
+                      handleEntrySelect(entry)
+                    }}
+                  >
+                    <option value="">-- Select Class --</option>
+                    {timetableEntries.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {entry.courseName} ({entry.courseCode}) - {entry.batchName} - {entry.day} Period{" "}
+                        {entry.periodNumber}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-        {activeTab === "request" && (
-          <div className="request-form">
-            <div className="form-section">
-              <h3>Step 1: Select Class Details</h3>
-              <div className="form-group">
-                <label>Select Timetable Entry:</label>
-                <select
-                  value={selectedEntry ? selectedEntry.id : ""}
-                  onChange={(e) => {
-                    const entry = timetableEntries.find((entry) => entry.id.toString() === e.target.value)
-                    handleEntrySelect(entry)
-                  }}
+                <div className="form-group">
+                  <label>Select Date for Substitution:</label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    min={new Date().toISOString().split("T")[0]}
+                    required
+                  />
+                  <small className="form-text">Please select today or a future date</small>
+                </div>
+
+                <div className="form-group">
+                  <label>Reason for Substitution:</label>
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Please provide a reason for your substitution request"
+                    rows={3}
+                  />
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h3>Step 2: Find Available Faculty</h3>
+                <div className="filter-options">
+                  <div className="checkbox-group">
+                    <input
+                      type="checkbox"
+                      id="filterAvailability"
+                      checked={filterByAvailability}
+                      onChange={() => setFilterByAvailability(!filterByAvailability)}
+                    />
+                    <label htmlFor="filterAvailability">Filter by Availability</label>
+                  </div>
+                  <div className="checkbox-group">
+                    <input
+                      type="checkbox"
+                      id="filterBatch"
+                      checked={filterByBatch}
+                      onChange={() => setFilterByBatch(!filterByBatch)}
+                    />
+                    <label htmlFor="filterBatch">Filter by Batch Handling</label>
+                  </div>
+                </div>
+                <button
+                  className="filter-button"
+                  onClick={handleFilterFaculty}
+                  disabled={!selectedEntry || !selectedDate}
                 >
-                  <option value="">-- Select Class --</option>
-                  {timetableEntries.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.courseName} ({entry.courseCode}) - {entry.batchName} - {entry.day} Period{" "}
-                      {entry.periodNumber}
-                    </option>
-                  ))}
-                </select>
+                  Find Available Faculty
+                </button>
+
+                {availableFaculty.length > 0 && (
+                  <div className="faculty-list">
+                    <h4>Available Faculty Members</h4>
+                    <div className="faculty-table-container" style={{ overflowX: "auto", marginTop: "20px" }}>
+                      <table
+                        className="faculty-table"
+                        style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "white" }}
+                      >
+                        <thead>
+                          <tr>
+                            <th
+                              style={{ backgroundColor: "#013c28", color: "white", padding: "12px", textAlign: "left" }}
+                            >
+                              Name
+                            </th>
+                            <th
+                              style={{ backgroundColor: "#013c28", color: "white", padding: "12px", textAlign: "left" }}
+                            >
+                              Department
+                            </th>
+                            <th
+                              style={{ backgroundColor: "#013c28", color: "white", padding: "12px", textAlign: "left" }}
+                            >
+                              Designation
+                            </th>
+                            <th
+                              style={{ backgroundColor: "#013c28", color: "white", padding: "12px", textAlign: "left" }}
+                            >
+                              Available
+                            </th>
+                            <th
+                              style={{ backgroundColor: "#013c28", color: "white", padding: "12px", textAlign: "left" }}
+                            >
+                              Handles Batch
+                            </th>
+                            <th
+                              style={{ backgroundColor: "#013c28", color: "white", padding: "12px", textAlign: "left" }}
+                            >
+                              Action
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {availableFaculty.map((faculty) => (
+                            <tr
+                              key={faculty.facultyId}
+                              style={{ backgroundColor: "#f9f9f9", borderBottom: "1px solid #ddd" }}
+                            >
+                              <td style={{ padding: "12px", textAlign: "left" }}>{faculty.name}</td>
+                              <td style={{ padding: "12px", textAlign: "left" }}>{faculty.department}</td>
+                              <td style={{ padding: "12px", textAlign: "left" }}>{faculty.designation}</td>
+                              <td style={{ padding: "12px", textAlign: "left" }}>
+                                <span
+                                  style={{
+                                    display: "inline-block",
+                                    padding: "4px 8px",
+                                    borderRadius: "4px",
+                                    backgroundColor: faculty.available ? "#e8f5e9" : "#ffebee",
+                                    color: faculty.available ? "#2e7d32" : "#c62828",
+                                    fontWeight: "500",
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  {faculty.available ? "Yes" : "No"}
+                                </span>
+                              </td>
+                              <td style={{ padding: "12px", textAlign: "left" }}>
+                                <span
+                                  style={{
+                                    display: "inline-block",
+                                    padding: "4px 8px",
+                                    borderRadius: "4px",
+                                    backgroundColor: faculty.handlesBatch ? "#e8f5e9" : "#ffebee",
+                                    color: faculty.handlesBatch ? "#2e7d32" : "#c62828",
+                                    fontWeight: "500",
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  {faculty.handlesBatch ? "Yes" : "No"}
+                                </span>
+                              </td>
+                              <td style={{ padding: "12px", textAlign: "left" }}>
+                                {selectedSubstitute === faculty.facultyId ? (
+                                  <button className="select-button"
+                                    style={{
+                                      backgroundColor: "#025d1f",
+                                      color: "#fff",
+                                      border: "none",
+                                      borderRadius: "4px",
+                                      padding: "8px 16px",
+                                      cursor: "default",
+                                      fontWeight: "500",
+                                    }}
+                                    disabled
+                                  >
+                                    Selected
+                                  </button>
+                                ) : (
+                                  <button className="select-button"
+                                    style={{
+                                      backgroundColor: "#013c28",
+                                      color: "#fff",
+                                      border: "none",
+                                      borderRadius: "4px",
+                                      padding: "8px 16px",
+                                      cursor: faculty.available ? "pointer" : "not-allowed",
+                                      opacity: faculty.available ? "1" : "0.6",
+                                      fontWeight: "500",
+                                    }}
+                                    onClick={() => {
+                                      console.log("Selected faculty:", faculty)
+                                      setSelectedSubstitute(faculty.facultyId)
+                                      toast.success(`Selected ${faculty.name} as substitute`)
+                                      // Scroll to the Step 3 section
+                                      document.querySelector(".form-section:nth-child(3)").scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "start",
+                                      })
+                                    }}
+                                    disabled={!faculty.available}
+                                  >
+                                    Select
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="form-group">
-                <label>Select Date for Substitution:</label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={handleDateChange}
-                  min={new Date().toISOString().split("T")[0]}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Reason for Substitution:</label>
-                <textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Please provide a reason for your substitution request"
-                  rows={3}
-                />
+              <div className="form-section">
+                <h3>Step 3: Submit Request</h3>
+                <button
+                  className="submit-button"
+                  onClick={handleSubmitRequest}
+                  disabled={!selectedEntry || !selectedDate || !selectedSubstitute || !reason || loading}
+                >
+                  {loading ? "Submitting..." : "Submit Substitute Request"}
+                </button>
               </div>
             </div>
+          )}
 
-            <div className="form-section">
-              <h3>Step 2: Find Available Faculty</h3>
-              <div className="filter-options">
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    id="filterAvailability"
-                    checked={filterByAvailability}
-                    onChange={() => setFilterByAvailability(!filterByAvailability)}
-                  />
-                  <label htmlFor="filterAvailability">Filter by Availability</label>
-                </div>
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    id="filterBatch"
-                    checked={filterByBatch}
-                    onChange={() => setFilterByBatch(!filterByBatch)}
-                  />
-                  <label htmlFor="filterBatch">Filter by Batch Handling</label>
-                </div>
-              </div>
-              <button
-                className="filter-button"
-                onClick={handleFilterFaculty}
-                disabled={!selectedEntry || !selectedDate}
-              >
-                Find Available Faculty
-              </button>
-
-              {availableFaculty.length > 0 && (
-                <div className="faculty-list">
-                  <h4>Available Faculty Members</h4>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Department</th>
-                        <th>Designation</th>
-                        <th>Available</th>
-                        <th>Handles Batch</th>
-                        <th>Action</th>
+          {activeTab === "sent" && (
+            <div className="requests-list">
+              <h3>Sent Substitute Requests</h3>
+              {loading ? (
+                <p>Loading requests...</p>
+              ) : sentRequests.length === 0 ? (
+                <p>No substitute requests sent.</p>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Course</th>
+                      <th>Batch</th>
+                      <th>Date</th>
+                      <th>Period</th>
+                      <th>Substitute</th>
+                      <th>Status</th>
+                      <th>Response</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sentRequests.map((request) => (
+                      <tr key={request.id}>
+                        <td>
+                          {request.courseTitle} ({request.courseCode})
+                        </td>
+                        <td>
+                          {request.batchName} {request.section}
+                        </td>
+                        <td>{formatDate(request.requestDate)}</td>
+                        <td>
+                          Period {request.periodNumber} ({request.startTime} - {request.endTime})
+                        </td>
+                        <td>{request.substituteName}</td>
+                        <td>
+                          <span className={getStatusBadgeClass(request.status)}>{request.status}</span>
+                        </td>
+                        <td>{request.responseMessage || "-"}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {availableFaculty.map((faculty) => (
-                        <tr key={faculty.facultyId}>
-                          <td>{faculty.name}</td>
-                          <td>{faculty.department}</td>
-                          <td>{faculty.designation}</td>
-                          <td>
-                            <span className={faculty.available ? "status-available" : "status-unavailable"}>
-                              {faculty.available ? "Yes" : "No"}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={faculty.handlesBatch ? "status-available" : "status-unavailable"}>
-                              {faculty.handlesBatch ? "Yes" : "No"}
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              className="select-button"
-                              onClick={() => {
-                                console.log("Selected faculty:", faculty)
-                                setSelectedSubstitute(faculty.facultyId)
-                              }}
-                              disabled={!faculty.available}
-                            >
-                              Select
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
+          )}
 
-            <div className="form-section">
-              <h3>Step 3: Submit Request</h3>
-              <button
-                className="submit-button"
-                onClick={handleSubmitRequest}
-                disabled={!selectedEntry || !selectedDate || !selectedSubstitute || !reason || loading}
-              >
-                {loading ? "Submitting..." : "Submit Substitute Request"}
-              </button>
+          {activeTab === "received" && (
+            <div className="requests-list">
+              <h3>Received Substitute Requests</h3>
+              {loading ? (
+                <p>Loading requests...</p>
+              ) : receivedRequests.length === 0 ? (
+                <p>No substitute requests received.</p>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Requester</th>
+                      <th>Course</th>
+                      <th>Batch</th>
+                      <th>Date</th>
+                      <th>Period</th>
+                      <th>Reason</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {receivedRequests.map((request) => (
+                      <tr key={request.id}>
+                        <td>{request.requesterName}</td>
+                        <td>
+                          {request.courseTitle} ({request.courseCode})
+                        </td>
+                        <td>
+                          {request.batchName} {request.section}
+                        </td>
+                        <td>{formatDate(request.requestDate)}</td>
+                        <td>
+                          Period {request.periodNumber} ({request.startTime} - {request.endTime})
+                        </td>
+                        <td>{request.reason}</td>
+                        <td>
+                          <span className={getStatusBadgeClass(request.status)}>{request.status}</span>
+                        </td>
+                        <td>
+                          {request.status === "PENDING" && (
+                            <div className="action-buttons">
+                              <button
+                                className="approve-button"
+                                onClick={() =>
+                                  handleUpdateRequestStatus(request.id, "APPROVED", "I can substitute for this class.")
+                                }
+                                disabled={loading}
+                              >
+                                Approve
+                              </button>
+                              <button
+                                className="reject-button"
+                                onClick={() =>
+                                  handleUpdateRequestStatus(
+                                    request.id,
+                                    "REJECTED",
+                                    "I'm not available for this substitution.",
+                                  )
+                                }
+                                disabled={loading}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-          </div>
-        )}
-
-        {activeTab === "sent" && (
-          <div className="requests-list">
-            <h3>Sent Substitute Requests</h3>
-            {loading ? (
-              <p>Loading requests...</p>
-            ) : sentRequests.length === 0 ? (
-              <p>No substitute requests sent.</p>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Course</th>
-                    <th>Batch</th>
-                    <th>Date</th>
-                    <th>Period</th>
-                    <th>Substitute</th>
-                    <th>Status</th>
-                    <th>Response</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sentRequests.map((request) => (
-                    <tr key={request.id}>
-                      <td>
-                        {request.courseTitle} ({request.courseCode})
-                      </td>
-                      <td>
-                        {request.batchName} {request.section}
-                      </td>
-                      <td>{formatDate(request.requestDate)}</td>
-                      <td>
-                        Period {request.periodNumber} ({request.startTime} - {request.endTime})
-                      </td>
-                      <td>{request.substituteName}</td>
-                      <td>
-                        <span className={getStatusBadgeClass(request.status)}>{request.status}</span>
-                      </td>
-                      <td>{request.responseMessage || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
-
-        {activeTab === "received" && (
-          <div className="requests-list">
-            <h3>Received Substitute Requests</h3>
-            {loading ? (
-              <p>Loading requests...</p>
-            ) : receivedRequests.length === 0 ? (
-              <p>No substitute requests received.</p>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Requester</th>
-                    <th>Course</th>
-                    <th>Batch</th>
-                    <th>Date</th>
-                    <th>Period</th>
-                    <th>Reason</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {receivedRequests.map((request) => (
-                    <tr key={request.id}>
-                      <td>{request.requesterName}</td>
-                      <td>
-                        {request.courseTitle} ({request.courseCode})
-                      </td>
-                      <td>
-                        {request.batchName} {request.section}
-                      </td>
-                      <td>{formatDate(request.requestDate)}</td>
-                      <td>
-                        Period {request.periodNumber} ({request.startTime} - {request.endTime})
-                      </td>
-                      <td>{request.reason}</td>
-                      <td>
-                        <span className={getStatusBadgeClass(request.status)}>{request.status}</span>
-                      </td>
-                      <td>
-                        {request.status === "PENDING" && (
-                          <div className="action-buttons">
-                            <button
-                              className="approve-button"
-                              onClick={() =>
-                                handleUpdateRequestStatus(request.id, "APPROVED", "I can substitute for this class.")
-                              }
-                              disabled={loading}
-                            >
-                              Approve
-                            </button>
-                            <button
-                              className="reject-button"
-                              onClick={() =>
-                                handleUpdateRequestStatus(
-                                  request.id,
-                                  "REJECTED",
-                                  "I'm not available for this substitution.",
-                                )
-                              }
-                              disabled={loading}
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
+          )}
+        </div>
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
-      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   )
 }

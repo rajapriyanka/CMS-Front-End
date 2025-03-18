@@ -30,7 +30,8 @@ import FacultyStudentLeaves from "./Components/FacultyData/FacultyStudentLeaves"
 import StudentLeaveData from "./Components/StudentData/StudentLeaveData";
 import StudentAttendanceData from "./Components/StudentData/StudentAttendanceData";
 import StudentProfile from "./Components/StudentData/StudentProfile";
-import SubstituteEmailAction from "./Components/EmailAction/SubstituteEmailAction"; // New component
+import SubstituteEmailAction from "./Components/EmailAction/SubstituteEmailAction"; 
+import AdminProfile from "./Components/AdminData/AdminProfile";// New component
 
 // Protected route for Admin
 const AdminProtectedRoute = ({ element }) => {
@@ -70,6 +71,7 @@ const App = () => {
             <Route path="/timetable-data" element={<AdminProtectedRoute element={<TimetableData />} />} />
             <Route path="/batch-data" element={<AdminProtectedRoute element={<BatchData />} />} />
             <Route path="/view-all-timetables" element={<AdminProtectedRoute element={<ViewTimetable />} />} />
+            <Route path="/admin-profile" element={<AdminProtectedRoute element={<AdminProfile />} />} />
 
             {/* Faculty routes */}
             <Route path="/faculty/login" element={<FacultyLogin />} />

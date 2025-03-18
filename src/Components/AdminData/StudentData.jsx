@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import UserService from "../../Service/UserService"
 import AdminNavbar from "../Land/AdminNavbar"
 import "./StudentData.css"
+import * as XLSX from "xlsx"
 
 const StudentData = () => {
   const [students, setStudents] = useState([])
@@ -45,53 +46,53 @@ const StudentData = () => {
   }
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
     // Clear the error for this field when user starts typing
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }))
+        setErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
     if (name === "email") {
-      setFormData((prev) => ({
-        ...prev,
-        user: { ...prev.user, [name]: value },
-      }))
-    } else if (name === "password") {
-      // When password changes, update both password and mobile number
-      setFormData((prev) => ({
-        ...prev,
-        user: { ...prev.user, password: value },
-        mobileNumber: value, // Sync mobile number with password
-      }))
-    } else if (name === "mobileNumber") {
-      // When mobile number changes, check if it starts with digits 0-5
-      if (value === "" || (!/^[0-5]/.test(value) && /^\d*$/.test(value))) {
         setFormData((prev) => ({
-          ...prev,
-          mobileNumber: value,
-          user: { ...prev.user, password: value }, // Sync password with mobile number
-        }))
-      }
+            ...prev,
+            user: { ...prev.user, [name]: value },
+        }));
+    } else if (name === "password") {
+        // When password changes, update both password and mobile number
+        setFormData((prev) => ({
+            ...prev,
+            user: { ...prev.user, password: value },
+            mobileNumber: value, // Sync mobile number with password
+        }));
+    } else if (name === "mobileNumber") {
+        // Prevent mobile number from starting with 0 to 5 and limit to 10 digits
+        if (value === "" || (/^[6-9]\d*$/.test(value) && /^\d{0,10}$/.test(value))) {
+            setFormData((prev) => ({
+                ...prev,
+                mobileNumber: value,
+                user: { ...prev.user, password: value }, // Sync password with mobile number
+            }));
+        }
     } else if (name === "name") {
-      // Only allow alphabets and spaces for name field
-      if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
-        setFormData((prev) => ({ ...prev, [name]: value }))
-      }
+        // Only allow alphabets and spaces for name field
+        if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
     } else if (name === "dno") {
-      // Only allow numeric values for dno field, max 4 digits
-      if (value === "" || (/^\d*$/.test(value) && value.length <= 4)) {
-        setFormData((prev) => ({ ...prev, [name]: value }))
-      }
+        // Only allow numeric values for dno field, max 4 digits
+        if (value === "" || (/^\d*$/.test(value) && value.length <= 4)) {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
     } else if (name === "batchName") {
-      // Only allow alphabets and spaces for batchName field
-      if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
-        setFormData((prev) => ({ ...prev, [name]: value }))
-      }
+        // Only allow alphabets and spaces for batchName field
+        if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }))
+        setFormData((prev) => ({ ...prev, [name]: value }));
     }
-  }
+};
 
   const validateForm = () => {
     let valid = true
@@ -294,13 +295,49 @@ const StudentData = () => {
   }
 
   const handleExcelUpload = async (file) => {
-    setIsUploading(true)
-    setError("")
-    try {
-      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-        throw new Error("Please upload a valid Excel file (.xlsx or .xls)")
+    setIsUploading(true);
+    setError("");
+  
+    if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+      setError("Please upload a valid Excel file (.xlsx or .xls)");
+      setIsUploading(false);
+      return;
+    }
+  
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+  
+      // Validate data before uploading
+      const validationErrors = validateStudentExcelData(jsonData);
+      if (validationErrors.length > 0) {
+        setError("Excel file contains errors:\n" + validationErrors.join("\n"));
+        setIsUploading(false);
+        return;
       }
+  
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        await UserService.uploadStudentExcel(formData);
+        alert("Students uploaded successfully!");
+        fetchStudents();
+      } catch (error) {
+        setError("Error uploading students: " + (error.response?.data?.message || error.message));
+      } finally {
+        setIsUploading(false);
+      }
+    };
+  
+    reader.readAsArrayBuffer(file);
+  };
+  
 
+  const uploadExcelData = async (file) => {
+    try {
       const formData = new FormData()
       formData.append("file", file)
 
@@ -319,6 +356,31 @@ const StudentData = () => {
     }
   }
 
+  const validateStudentExcelData = (data) => {
+    const errors = [];
+    data.forEach((row, index) => {
+      const rowNum = index + 2; // Row number in Excel (considering headers)
+  
+      if (!row.Name || !/^[A-Za-z\s]+$/.test(row.Name) || row.Name.trim().length < 5) {
+        errors.push(`Row ${rowNum}: Invalid Name (Only alphabets, min 5 characters required)`);
+      }
+  
+      if (!row.Email || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|in|org)$/i.test(row.Email)) {
+        errors.push(`Row ${rowNum}: Invalid Email format (must end with .com, .in, or .org)`);
+      }
+  
+      if (!row.Password || !/^\d{10}$/.test(row.Password) || /^[0-5]/.test(row.Password)) {
+        errors.push(`Row ${rowNum}: Invalid Password/Mobile Number (Must be 10 digits, should not start with 0-5)`);
+      }
+  
+      if (!row.Dno || !/^\d{4}$/.test(row.Dno)) {
+        errors.push(`Row ${rowNum}: Invalid D.No (Must be exactly 4 numeric digits)`);
+      }
+    });
+  
+    return errors;
+  };
+  
   const handleFilter = () => {
     const filtered = students.filter((student) => {
       // Check if the selected department matches or if no department is selected
@@ -534,5 +596,5 @@ const StudentData = () => {
   )
 }
 
-export default StudentData;
+export default StudentData
 

@@ -282,228 +282,235 @@ const FacultyLeave = () => {
     <div className="faculty-leave-page">
       <FacultyNavbar />
       <div className="faculty-leave-container">
-        
         <div className="faculty-leave-sidebar">
-            <h2>Faculty Leave Management</h2>
+          <h2>Faculty Leave Management</h2>
 
-            <div className="leave-tabs">
-              <button
-                 className={`tab-button ${activeTab === "request" ? "active" : ""}`}
-                 onClick={() => setActiveTab("request")}
-                 >
-                    Request Leave
-              </button>
-              <button
-                className={`tab-button ${activeTab === "history" ? "active" : ""}`}
-                onClick={() => setActiveTab("history")}
-                >
-                 Leave History
-              </button>
-              <button
-                className={`tab-button ${activeTab === "approvals" ? "active" : ""}`}
-                onClick={() => setActiveTab("approvals")}
-                >
-                 Pending Approvals
-                 {pendingApprovals.length > 0 && <span className="badge">{pendingApprovals.length}</span>}
-              </button>
-            </div>
+          <div className="leave-tabs">
+            <button
+              className={`tab-button ${activeTab === "request" ? "active" : ""}`}
+              onClick={() => setActiveTab("request")}
+            >
+              Request Leave
+            </button>
+            <button
+              className={`tab-button ${activeTab === "history" ? "active" : ""}`}
+              onClick={() => setActiveTab("history")}
+            >
+              Leave History
+            </button>
+            <button
+              className={`tab-button ${activeTab === "approvals" ? "active" : ""}`}
+              onClick={() => setActiveTab("approvals")}
+            >
+              Pending Approvals
+              {pendingApprovals.length > 0 && <span className="badge">{pendingApprovals.length}</span>}
+            </button>
+          </div>
         </div>
 
         <div className="faculty-leave-main-content">
+          {error && <div className="error-message">{error}</div>}
+          {success && <div className="success-message">{success}</div>}
 
-        
+          {activeTab === "request" && (
+            <div className="leave-request-form">
+              <h2>Submit Leave Request</h2>
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label htmlFor="approverId">Send Request To:</label>
+                  <select
+                    id="approverId"
+                    name="approverId"
+                    value={formData.approverId}
+                    onChange={handleInputChange}
+                    required
+                    disabled={loading || facultyList.length === 0}
+                  >
+                    <option value="">Select Faculty</option>
+                    {facultyList.map((faculty) => (
+                      <option key={faculty.id} value={faculty.id}>
+                        {faculty.name} ({faculty.email})
+                      </option>
+                    ))}
+                  </select>
+                  {facultyList.length === 0 && !loading && !error && (
+                    <p className="help-text">No faculty members available to send requests to.</p>
+                  )}
+                </div>
 
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
+                <div className="form-group">
+                  <label htmlFor="subject">Subject:</label>
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleInputChange}
+                    required
+                    disabled={loading}
+                  />
+                </div>
 
-        {activeTab === "request" && (
-          <div className="leave-request-form">
-            <h2>Submit Leave Request</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="approverId">Send Request To:</label>
-                <select
-                  id="approverId"
-                  name="approverId"
-                  value={formData.approverId}
-                  onChange={handleInputChange}
-                  required
+                <div className="form-group">
+                  <label htmlFor="reason">Reason for Leave:</label>
+                  <textarea
+                    id="reason"
+                    name="reason"
+                    value={formData.reason}
+                    onChange={handleInputChange}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="fromDate">From Date:</label>
+                    <input
+                      type="date"
+                      id="fromDate"
+                      name="fromDate"
+                      value={formData.fromDate}
+                      onChange={handleInputChange}
+                      required
+                      disabled={loading}
+                      min={new Date().toISOString().split("T")[0]}
+                      className={
+                        formData.fromDate && formData.fromDate < new Date().toISOString().split("T")[0]
+                          ? "input-error"
+                          : ""
+                      }
+                    />
+                    <small className="form-text">Must be today or a future date</small>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="toDate">To Date:</label>
+                    <input
+                      type="date"
+                      id="toDate"
+                      name="toDate"
+                      value={formData.toDate}
+                      onChange={handleInputChange}
+                      required
+                      disabled={loading}
+                      min={formData.fromDate || new Date().toISOString().split("T")[0]}
+                      className={formData.toDate && formData.toDate < formData.fromDate ? "input-error" : ""}
+                    />
+                    <small className="form-text">Must be on or after From Date</small>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="faculty-leave-submit-button"
                   disabled={loading || facultyList.length === 0}
                 >
-                  <option value="">Select Faculty</option>
-                  {facultyList.map((faculty) => (
-                    <option key={faculty.id} value={faculty.id}>
-                      {faculty.name} ({faculty.email})
-                    </option>
-                  ))}
-                </select>
-                {facultyList.length === 0 && !loading && !error && (
-                  <p className="help-text">No faculty members available to send requests to.</p>
-                )}
-              </div>
+                  {loading ? "Submitting..." : "Submit Leave Request"}
+                </button>
+              </form>
+            </div>
+          )}
 
-              <div className="form-group">
-                <label htmlFor="subject">Subject:</label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="reason">Reason for Leave:</label>
-                <textarea
-                  id="reason"
-                  name="reason"
-                  value={formData.reason}
-                  onChange={handleInputChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="fromDate">From Date:</label>
-                  <input
-                    type="date"
-                    id="fromDate"
-                    name="fromDate"
-                    value={formData.fromDate}
-                    onChange={handleInputChange}
-                    required
-                    disabled={loading}
-                    min={new Date().toISOString().split("T")[0]}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="toDate">To Date:</label>
-                  <input
-                    type="date"
-                    id="toDate"
-                    name="toDate"
-                    value={formData.toDate}
-                    onChange={handleInputChange}
-                    required
-                    disabled={loading}
-                    min={formData.fromDate || new Date().toISOString().split("T")[0]}
-                  />
-                </div>
-              </div>
-
-              <button type="submit" className="faculty-leave-submit-button" disabled={loading || facultyList.length === 0}>
-                {loading ? "Submitting..." : "Submit Leave Request"}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {activeTab === "history" && (
-          <div className="leave-history">
-            <h2>Leave History</h2>
-            {loading ? (
-              <p className="loading-text">Loading leave history...</p>
-            ) : leaveHistory.length === 0 ? (
-              <p className="no-data">No leave requests found.</p>
-            ) : (
-              <div className="leave-table-container">
-                <table className="leave-table">
-                  <thead>
-                    <tr>
-                      <th>Subject</th>
-                      <th>Approver</th>
-                      <th>From</th>
-                      <th>To</th>
-                      <th>Requested On</th>
-                      <th>Status</th>
-                      <th>Comments</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leaveHistory.map((leave) => (
-                      <tr key={leave.id}>
-                        <td>{leave.subject}</td>
-                        <td>{leave.approverName}</td>
-                        <td>{formatDate(leave.fromDate)}</td>
-                        <td>{formatDate(leave.toDate)}</td>
-                        <td>{formatDate(leave.requestedAt)}</td>
-                        <td>
-                          <span className={getStatusBadgeClass(leave.status)}>{leave.status}</span>
-                        </td>
-                        <td>{leave.comments || "-"}</td>
+          {activeTab === "history" && (
+            <div className="leave-history">
+              <h2>Leave History</h2>
+              {loading ? (
+                <p className="loading-text">Loading leave history...</p>
+              ) : leaveHistory.length === 0 ? (
+                <p className="no-data">No leave requests found.</p>
+              ) : (
+                <div className="leave-table-container">
+                  <table className="leave-table">
+                    <thead>
+                      <tr>
+                        <th>Subject</th>
+                        <th>Approver</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Requested On</th>
+                        <th>Status</th>
+                        <th>Comments</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
+                    </thead>
+                    <tbody>
+                      {leaveHistory.map((leave) => (
+                        <tr key={leave.id}>
+                          <td>{leave.subject}</td>
+                          <td>{leave.approverName}</td>
+                          <td>{formatDate(leave.fromDate)}</td>
+                          <td>{formatDate(leave.toDate)}</td>
+                          <td>{formatDate(leave.requestedAt)}</td>
+                          <td>
+                            <span className={getStatusBadgeClass(leave.status)}>{leave.status}</span>
+                          </td>
+                          <td>{leave.comments || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
-        {activeTab === "approvals" && (
-          <div className="pending-approvals">
-            <h2>Pending Leave Approvals</h2>
-            {loading ? (
-              <p className="loading-text">Loading pending approvals...</p>
-            ) : pendingApprovals.length === 0 ? (
-              <p className="no-data">No pending approvals found.</p>
-            ) : (
-              <div className="leave-table-container">
-                <table className="leave-table">
-                  <thead>
-                    <tr>
-                      <th>Faculty</th>
-                      <th>Subject</th>
-                      <th>From</th>
-                      <th>To</th>
-                      <th>Requested On</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingApprovals.map((leave) => (
-                      <tr key={leave.id}>
-                        <td>{leave.facultyName}</td>
-                        <td>{leave.subject}</td>
-                        <td>{formatDate(leave.fromDate)}</td>
-                        <td>{formatDate(leave.toDate)}</td>
-                        <td>{formatDate(leave.requestedAt)}</td>
-                        <td className="action-buttons">
-                          <button
-                            className="approve-button"
-                            onClick={() => handleApproveReject(leave.id, "APPROVED", "Approved")}
-                            disabled={loading}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="reject-button"
-                            onClick={() => handleApproveReject(leave.id, "REJECTED", "Rejected")}
-                            disabled={loading}
-                          >
-                            Reject
-                          </button>
-                        </td>
+          {activeTab === "approvals" && (
+            <div className="pending-approvals">
+              <h2>Pending Leave Approvals</h2>
+              {loading ? (
+                <p className="loading-text">Loading pending approvals...</p>
+              ) : pendingApprovals.length === 0 ? (
+                <p className="no-data">No pending approvals found.</p>
+              ) : (
+                <div className="leave-table-container">
+                  <table className="leave-table">
+                    <thead>
+                      <tr>
+                        <th>Faculty</th>
+                        <th>Subject</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Requested On</th>
+                        <th>Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-       </div>
+                    </thead>
+                    <tbody>
+                      {pendingApprovals.map((leave) => (
+                        <tr key={leave.id}>
+                          <td>{leave.facultyName}</td>
+                          <td>{leave.subject}</td>
+                          <td>{formatDate(leave.fromDate)}</td>
+                          <td>{formatDate(leave.toDate)}</td>
+                          <td>{formatDate(leave.requestedAt)}</td>
+                          <td className="action-buttons">
+                            <button
+                              className="approve-button"
+                              onClick={() => handleApproveReject(leave.id, "APPROVED", "Approved")}
+                              disabled={loading}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              className="reject-button"
+                              onClick={() => handleApproveReject(leave.id, "REJECTED", "Rejected")}
+                              disabled={loading}
+                            >
+                              Reject
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
 }
 
-export default FacultyLeave;
+export default FacultyLeave
 

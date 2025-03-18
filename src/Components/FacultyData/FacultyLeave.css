@@ -297,5 +297,38 @@
     font-style: italic;
     padding: 2rem 0;
   }
+  /* Add these styles to your existing CSS file */
+
+.input-error {
+  border: 1px solid #ff3333 !important;
+  background-color: #fff8f8;
+}
+
+.form-text {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 2px;
+  display: block;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #c62828;
+}
+
+.success-message {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #2e7d32;
+}
+
+
   
   

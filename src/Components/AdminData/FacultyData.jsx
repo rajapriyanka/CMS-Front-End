@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import AdminNavbar from "../Land/AdminNavbar"
 import UserService from "../../Service/UserService"
 import "./FacultyData.css"
+import * as XLSX from "xlsx";
 
 const FacultyData = () => {
   const [showForm, setShowForm] = useState(false)
@@ -138,24 +139,25 @@ const FacultyData = () => {
   }
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
-    // Prevent numeric input for name field
     if (name === "name") {
-      // Only update if the value doesn't contain numbers
-      if (!/\d/.test(value)) {
-        setFormData({ ...formData, [name]: value })
-      }
+        // Allow only alphabets and spaces
+        if (/^[a-zA-Z\s]*$/.test(value)) {
+            setFormData({ ...formData, [name]: value });
+        }
     } else if (name === "mobileNo") {
-      // For mobile number, check if it starts with digits 0-5
-      if (value === "" || (!/^[0-5]/.test(value) && /^\d*$/.test(value))) {
-        setFormData({ ...formData, [name]: value })
-      }
+        // Allow only numeric input, prevent starting with digits 0-5, and limit to 10 digits
+        if (value === "" || (!/^[0-5]/.test(value) && /^\d{0,10}$/.test(value))) {
+            setFormData({ ...formData, [name]: value });
+        }
     } else {
-      // For other fields, update normally
-      setFormData({ ...formData, [name]: value })
+        // For other fields, update normally
+        setFormData({ ...formData, [name]: value });
     }
-  }
+};
+
+
 
   const handleRegister = async (e) => {
     e.preventDefault()
@@ -243,20 +245,117 @@ const FacultyData = () => {
       handleExcelUpload(file)
     }
   }
-
+  
   const handleExcelUpload = async (file) => {
-    setIsUploading(true)
-    try {
-      await UserService.uploadFacultyExcel(file)
-      setMessage("Faculty members uploaded successfully")
-      fetchFaculties()
-    } catch (error) {
-      console.error("Error uploading Excel file:", error)
-      setMessage(error.message)
-    } finally {
-      setIsUploading(false)
+    setIsUploading(true);
+    setMessage("");
+  
+    // Validate file type
+    if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+      setMessage("Please upload a valid Excel file (.xlsx or .xls)");
+      setIsUploading(false);
+      return;
     }
-  }
+  
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+  
+      console.log("Parsed Excel Data:", jsonData);
+  
+      // Validate data before uploading
+      const validationErrors = validateFacultyExcelData(jsonData);
+      if (validationErrors.length > 0) {
+        setMessage("Excel file contains errors:\n" + validationErrors.join("\n"));
+        setIsUploading(false);
+        return;
+      }
+  
+      // Proceed with file upload if validation passes
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        await UserService.uploadFacultyExcel(formData);
+        alert("Faculty members uploaded successfully!");
+        fetchFaculties();
+      } catch (error) {
+        setMessage("Error uploading faculty data: " + (error.response?.data?.message || error.message));
+      } finally {
+        setIsUploading(false);
+      }
+    };
+  
+    reader.readAsArrayBuffer(file);
+  };
+  
+
+
+  const uploadExcelData = async (data) => {
+    try {
+      await UserService.uploadFacultyExcel(data);
+      setMessage("Faculty members uploaded successfully!");
+      fetchFaculties(); // Refresh list
+    } catch (error) {
+      setMessage("Error uploading Excel data: " + error.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
+  const validateFacultyExcelData = (data) => {
+    const errors = [];
+  
+    data.forEach((row, index) => {
+      const rowNum = index + 2; // Row number in Excel (considering headers)
+  
+      // Validate Email
+      if (!row.Email || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com|in|org)$/i.test(row.Email)) {
+        errors.push(`Row ${rowNum}: Invalid Email format`);
+      }
+  
+      // Validate Password (Ensure password exists)
+      if (!row.Password || row.Password.length < 6) {
+        errors.push(`Row ${rowNum}: Password is required (Min 6 characters)`);
+      }
+  
+      // Validate Name (Only alphabets, min 5 chars)
+      if (!row.Name || !/^[A-Za-z\s]+$/.test(row.Name) || row.Name.trim().length < 5) {
+        errors.push(`Row ${rowNum}: Invalid Name (Only alphabets, min 5 characters required)`);
+      }
+  
+      // Validate Department (Ensure it's one of the predefined ones)
+      const departments = [
+        "Computer Science and Engineering",
+        "Information Technology",
+        "Electronics and Communication Engineering",
+        "Electrical and Electronics Engineering",
+        "Mechanical Engineering",
+        "Civil Engineering",
+        "Aeronautical Engineering",
+      ];
+      if (!departments.includes(row.Department)) {
+        errors.push(`Row ${rowNum}: Invalid Department`);
+      }
+  
+      // Validate Designation
+      const designations = ["Professor", "Assistant Professor", "Associate Professor"];
+      if (!designations.includes(row.Designation)) {
+        errors.push(`Row ${rowNum}: Invalid Designation`);
+      }
+  
+      // Validate Mobile Number (10 digits, not starting with 0-5)
+      if (!row["Mobile No"] || !/^\d{10}$/.test(row["Mobile No"]) || /^[0-5]/.test(row["Mobile No"])) {
+        errors.push(`Row ${rowNum}: Invalid Mobile Number (Must be 10 digits, should not start with 0-5)`);
+      }
+    });
+  
+    return errors;
+  };
+  
+  
 
   const handleFilter = () => {
     const filtered = faculties.filter((faculty) => {
@@ -299,6 +398,7 @@ const FacultyData = () => {
                 />
                 {errors.email && <span className="error-message">{errors.email}</span>}
                 <select name="department" value={formData.department} onChange={handleInputChange}>
+                <option value="">Select Department</option>
                   {departments.map((dept, index) => (
                     <option key={index} value={dept}>
                       {dept}
@@ -307,7 +407,7 @@ const FacultyData = () => {
                 </select>
                 {errors.department && <span className="error-message">{errors.department}</span>}
                 <select name="designation" value={formData.designation} onChange={handleInputChange}>
-                  <option value=""></option>
+                  <option value="">Select Designation</option>
                   {designations.map((designation, index) => (
                     <option key={index} value={designation}>
                       {designation}

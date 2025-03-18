@@ -186,26 +186,26 @@ class UserService {
   }
   static async updateFaculty(userId, facultyData) {
     try {
-      console.log(`Updating faculty with userId ${userId}:`, facultyData);
-      const token = localStorage.getItem("token");
+      console.log(`Updating faculty with userId ${userId}:`, facultyData)
+      const token = localStorage.getItem("token")
       if (!token) {
-        throw new Error("No token found. Please log in again.");
+        throw new Error("No token found. Please log in again.")
       }
-  
+
       const response = await axios.put(`${UserService.BASE_URL}/api/faculty/user/${userId}`, facultyData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
-  
-      console.log("Faculty update successful:", response.data);
-      return response.data;
+      })
+
+      console.log("Faculty update successful:", response.data)
+      return response.data
     } catch (err) {
-      console.error("Update faculty error:", err.response?.data?.message || err.message);
-      throw new Error(err.response?.data?.message || "Failed to update faculty. Please try again.");
+      console.error("Update faculty error:", err.response?.data?.message || err.message)
+      throw new Error(err.response?.data?.message || "Failed to update faculty. Please try again.")
     }
   }
-  
+
   static async getAllFaculty() {
     try {
       console.log("Fetching all faculty...")
@@ -548,26 +548,27 @@ class UserService {
 
   static async uploadStudentExcel(formData) {
     try {
-      console.log("Uploading student Excel file")
-      const token = localStorage.getItem("token")
+      console.log("Uploading student Excel file...");
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error("No token found. Please log in again.")
+        throw new Error("No token found. Please log in again.");
       }
-
+  
       const response = await axios.post(`${UserService.BASE_URL}/api/students/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
-      })
-
-      console.log("Student Excel upload successful:", response.data)
-      return response.data
+      });
+  
+      console.log("Student Excel upload successful:", response.data);
+      return response.data;
     } catch (err) {
-      console.error("Student Excel upload error:", err.response?.data || err.message)
-      throw new Error(err.response?.data || "Failed to upload Excel file. Please try again.")
+      console.error("Student Excel upload error:", err.response?.data || err.message);
+      throw new Error(err.response?.data || "Failed to upload student Excel file. Please try again.");
     }
   }
+  
   static async search(resource, filters) {
     try {
       console.log(`Searching ${resource} with filters:`, filters)
@@ -591,40 +592,42 @@ class UserService {
     }
   }
 
-  static async uploadFacultyExcel(file) {
+  static async uploadFacultyExcel(formData) {
     try {
-      console.log("Uploading faculty Excel file:", file.name)
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error("No token found. Please log in again.")
+        throw new Error("No token found. Please log in again.");
       }
-
-      const formData = new FormData()
-      formData.append("file", file)
-
+  
       const response = await axios.post(`${UserService.BASE_URL}/api/faculty/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
-      })
-
-      console.log("Faculty Excel upload successful:", response.data)
-      return response.data
+      });
+  
+      console.log("Faculty Excel upload successful:", response.data);
+      return response.data;
     } catch (err) {
-      console.error("Faculty Excel upload error:", err.response?.data?.message || err.message)
-      throw new Error(err.response?.data?.message || "Failed to upload Excel file. Please try again.")
+      console.error("Faculty Excel upload error:", err.response?.data?.message || err.message);
+      throw new Error(err.response?.data?.message || "Failed to upload Excel file. Please try again.");
     }
   }
-  static async uploadCourseExcel(file) {
+  
+  static async uploadCourseExcel(formData) {
     try {
       const token = localStorage.getItem("token")
       if (!token) {
         throw new Error("No token found. Please log in again.")
       }
 
-      const formData = new FormData()
-      formData.append("file", file)
+      // Make sure formData contains the file
+      const fileEntry = formData.get("file")
+      if (!fileEntry) {
+        throw new Error("No file selected for upload")
+      }
+
+      console.log("Uploading file:", fileEntry.name)
 
       const response = await axios.post(`${UserService.BASE_URL}/api/courses/upload`, formData, {
         headers: {
@@ -636,10 +639,10 @@ class UserService {
       return response.data
     } catch (err) {
       console.error("Course Excel upload error:", err.response?.data || err.message)
-      throw new Error(err.response?.data || "Failed to upload Excel file. Please try again.")
+      throw err
     }
   }
 }
 
-export default UserService;
+export default UserService
 

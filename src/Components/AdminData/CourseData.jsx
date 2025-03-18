@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import AdminNavbar from "../Land/AdminNavbar"
 import UserService from "../../Service/UserService"
 import "./CourseData.css"
+import * as XLSX from "xlsx"
 
 const CourseData = () => {
   const [showForm, setShowForm] = useState(false)
@@ -121,53 +122,30 @@ const CourseData = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target
 
-    // For title field: prevent numeric and special characters
     if (name === "title") {
-      // Only allow letters and spaces
       if (!/^[A-Za-z\s]*$/.test(value)) {
-        return // Don't update state if input contains numbers or special characters
-      }
-    }
-
-    // For code field: prevent special characters but allow alphanumeric
-    if (name === "code") {
-      // Only allow alphanumeric characters
-      if (!/^[A-Za-z0-9]*$/.test(value)) {
-        return // Don't update state if input contains special characters
-      }
-    }
-
-    // For contactPeriods field: prevent negative values and zero
-    if (name === "contactPeriods") {
-      // Check if the value is empty (allow this for initial input)
-      if (value === "") {
-        setFormData((prevState) => ({ ...prevState, [name]: value }))
         return
       }
+    }
 
-      // Convert to number for validation
-      const numValue = Number(value)
+    if (name === "code") {
+      if (!/^[A-Za-z0-9]*$/.test(value)) {
+        return
+      }
+    }
 
-      // Check if it's not a number, is negative, or is zero
-      if (isNaN(numValue) || numValue <= 0) {
-        // Set error message but don't update the form value
+    if (name === "contactPeriods") {
+      if (!/^[1-9]\d*$/.test(value) && value !== "") {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: numValue === 0 ? "Contact Periods cannot be zero" : "Contact Periods must be a positive number",
+          [name]: "Contact Periods must be a positive number without special characters or letters",
         }))
         return
       }
-
-      // Clear error if value is valid
       setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }))
     }
 
     setFormData((prevState) => ({ ...prevState, [name]: value }))
-
-    // Clear the error for this field when the user starts typing
-    if (name !== "contactPeriods" || Number(value) > 0) {
-      setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }))
-    }
   }
 
   const validateForm = () => {
@@ -265,18 +243,150 @@ const CourseData = () => {
     }
   }
 
+  // Update the handleExcelUpload function to properly map the Excel data to the expected format
   const handleExcelUpload = async (file) => {
     setIsUploading(true)
+    setMessage("")
+
+    if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+      setMessage("Please upload a valid Excel file (.xlsx or .xls)")
+      setIsUploading(false)
+      return
+    }
+
+    const reader = new FileReader()
+
+    reader.onload = (event) => {
+      const data = new Uint8Array(event.target.result)
+      const workbook = XLSX.read(data, { type: "array" })
+      const sheetName = workbook.SheetNames[0]
+      const sheet = workbook.Sheets[sheetName]
+      const jsonData = XLSX.utils.sheet_to_json(sheet)
+
+      console.log("Parsed Excel Data:", jsonData)
+
+      // Validate data before uploading
+      const errors = validateExcelData(jsonData)
+      if (errors.length > 0) {
+        setMessage("Excel file contains errors:\n" + errors.join("\n"))
+        setIsUploading(false)
+        return
+      }
+
+      // Map the data to match the expected format if column names have spaces
+      const mappedData = jsonData.map((row) => ({
+        title: row.Title,
+        code: row.Code,
+        contactPeriods: row["Contact Periods"],
+        semesterNo: row["Semester No"],
+        department: row.Department,
+        type: row.Type,
+      }))
+
+      console.log("Mapped Data:", mappedData)
+
+      // If valid, proceed with the upload
+      uploadExcelData(file, mappedData)
+    }
+
+    reader.readAsArrayBuffer(file)
+  }
+
+  // Update the uploadExcelData function to handle the mapped data
+  const uploadExcelData = async (file, mappedData) => {
     try {
-      await UserService.uploadCourseExcel(file)
+      const formData = new FormData()
+      formData.append("file", file)
+
+      // If your API supports sending the parsed data directly, you can add it to the form
+      // This is optional and depends on your backend implementation
+      if (mappedData) {
+        formData.append("parsedData", JSON.stringify(mappedData))
+      }
+
+      await UserService.uploadCourseExcel(formData)
       setMessage("Courses uploaded successfully")
       fetchCourses()
     } catch (error) {
       console.error("Error uploading Excel file:", error)
-      setMessage(error.message)
+      setMessage(error.response?.data?.message || error.message || "Error uploading courses. Please try again.")
     } finally {
       setIsUploading(false)
     }
+  }
+
+  // Update the validateExcelData function to check column order
+  const validateExcelData = (data) => {
+    const errors = []
+
+    // Check if the Excel file has the expected columns in the correct order
+    if (data.length > 0) {
+      const firstRow = data[0]
+      const expectedColumns = ["Title", "Code", "Contact Periods", "Semester No", "Department", "Type"]
+      const actualColumns = Object.keys(firstRow)
+
+      // Check if all expected columns exist
+      const missingColumns = expectedColumns.filter((col) => !actualColumns.includes(col))
+      if (missingColumns.length > 0) {
+        errors.push(`Missing columns: ${missingColumns.join(", ")}`)
+      }
+
+      // Check column order
+      let isCorrectOrder = true
+      let lastFoundIndex = -1
+
+      for (const expectedCol of expectedColumns) {
+        const currentIndex = actualColumns.indexOf(expectedCol)
+        if (currentIndex === -1) continue // Skip missing columns as we already reported them
+
+        if (currentIndex <= lastFoundIndex) {
+          isCorrectOrder = false
+          break
+        }
+        lastFoundIndex = currentIndex
+      }
+
+      if (!isCorrectOrder) {
+        errors.push(`Columns are not in the correct order. Expected order: ${expectedColumns.join(", ")}`)
+      }
+    }
+
+    // Continue with the existing validation for each row
+    data.forEach((row, index) => {
+      const rowNum = index + 2 // Row number in Excel (considering headers)
+
+      // Validate Title (only alphabets and spaces, min 5 chars)
+      if (!row.Title || !/^[A-Za-z\s]+$/.test(row.Title) || row.Title.trim().length < 5) {
+        errors.push(`Row ${rowNum}: Invalid Title (Only alphabets and spaces, min 5 characters required)`)
+      }
+
+      // Validate Code (alphanumeric, min 5 chars)
+      if (!row.Code || !/^[A-Za-z0-9]+$/.test(row.Code) || row.Code.trim().length < 5) {
+        errors.push(`Row ${rowNum}: Invalid Code (Only alphanumeric characters, min 5 characters required)`)
+      }
+
+      // Validate Contact Periods (positive number)
+      if (!row["Contact Periods"] || isNaN(Number(row["Contact Periods"])) || Number(row["Contact Periods"]) <= 0) {
+        errors.push(`Row ${rowNum}: Invalid Contact Periods (Must be a positive number)`)
+      }
+
+      // Validate Semester Number
+      if (!row["Semester No"] || !semesters.includes(row["Semester No"].toString())) {
+        errors.push(`Row ${rowNum}: Invalid Semester Number (Must be between 1-8)`)
+      }
+
+      // Validate Department
+      if (!row.Department || !departments.includes(row.Department)) {
+        errors.push(`Row ${rowNum}: Invalid Department`)
+      }
+
+      // Validate Course Type
+      if (!row.Type || !courseTypes.includes(row.Type)) {
+        errors.push(`Row ${rowNum}: Invalid Course Type (Must be ACADEMIC, NON_ACADEMIC, or LAB)`)
+      }
+    })
+
+    return errors
   }
 
   return (

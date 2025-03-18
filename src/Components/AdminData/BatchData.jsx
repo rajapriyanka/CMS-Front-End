@@ -101,11 +101,11 @@ const BatchData = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target
 
-    // For batchName and section fields, prevent numeric input
-    if ((name === "batchName" || name === "section") && /\d/.test(value)) {
-      // If the new value contains numbers, don't update the state
-      return
+    if ((name === "batchName" || name === "section") && /[^a-zA-Z\s]/.test(value)) {
+      // If the new value contains numbers or special characters, don't update the state
+      return;
     }
+    
 
     // For other fields or if the value is valid, update normally
     setFormData((prevState) => ({
