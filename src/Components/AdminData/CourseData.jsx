@@ -449,8 +449,7 @@ const CourseData = () => {
                     value={formData.contactPeriods}
                     onChange={handleInputChange}
                     className="form-input"
-                    min="1" // Changed from 0 to 1 to prevent zero values
-                    step="1" // Ensure only whole numbers
+                   
                   />
                   {errors.contactPeriods && <span className="error-message">{errors.contactPeriods}</span>}
                 </div>

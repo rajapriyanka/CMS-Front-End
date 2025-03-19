@@ -220,6 +220,50 @@ const FacultySubstitute = () => {
     setAvailableFaculty([])
   }
 
+  // Function to extract batch ID from the selected entry
+  const extractBatchId = (entry) => {
+    if (!entry) return null
+
+    // Log the entry to see its structure
+    console.log("Extracting batch ID from entry:", entry)
+
+    // Try different possible locations for the batch ID
+    if (entry.batchId !== undefined && entry.batchId !== null) {
+      console.log("Found batchId directly:", entry.batchId)
+      return entry.batchId
+    }
+
+    if (entry.batch && entry.batch.id !== undefined && entry.batch.id !== null) {
+      console.log("Found batch.id:", entry.batch.id)
+      return entry.batch.id
+    }
+
+    // If we have a batch name, try to find the corresponding batch ID from the batches array
+    if (entry.batchName && batches.length > 0) {
+      const matchingBatch = batches.find(
+        (batch) => batch.batchName === entry.batchName || batch.name === entry.batchName,
+      )
+
+      if (matchingBatch) {
+        console.log("Found matching batch by name:", matchingBatch.id)
+        return matchingBatch.id
+      }
+    }
+
+    // If we have a batch code, try to find the corresponding batch ID
+    if (entry.batchCode && batches.length > 0) {
+      const matchingBatch = batches.find((batch) => batch.code === entry.batchCode)
+
+      if (matchingBatch) {
+        console.log("Found matching batch by code:", matchingBatch.id)
+        return matchingBatch.id
+      }
+    }
+
+    console.log("Could not extract batch ID from entry")
+    return null
+  }
+
   const handleFilterFaculty = async () => {
     if (!selectedEntry || !selectedDate) {
       toast.warning("Please select a timetable entry and date")
@@ -229,6 +273,17 @@ const FacultySubstitute = () => {
     console.log("Starting handleFilterFaculty")
     console.log("Selected entry:", selectedEntry)
     console.log("Selected date:", selectedDate)
+
+    // Extract the batch ID from the selected entry
+    const batchId = extractBatchId(selectedEntry)
+    console.log("Extracted batch ID:", batchId)
+
+    // Check if trying to filter by batch but no batchId is available
+    if (filterByBatch && !batchId) {
+      toast.warning("Cannot filter by batch handling because the selected entry has no batch ID")
+      setFilterByBatch(false) // Automatically disable the filter
+      return
+    }
 
     setLoading(true)
     try {
@@ -245,7 +300,7 @@ const FacultySubstitute = () => {
         requestDate: selectedDate,
         periodNumber: selectedEntry.periodNumber,
         day: selectedEntry.day, // Add the day parameter
-        batchId: selectedEntry.batchId || null,
+        batchId: batchId, // Use the extracted batch ID
         filterByAvailability,
         filterByBatch,
       }
@@ -301,7 +356,7 @@ const FacultySubstitute = () => {
         id: selectedEntry.id,
         day: selectedEntry.day,
         periodNumber: selectedEntry.periodNumber,
-        batchId: selectedEntry.batchId,
+        batchId: extractBatchId(selectedEntry),
       })
 
       // Create a more detailed request object with all necessary information
@@ -410,6 +465,23 @@ const FacultySubstitute = () => {
     }
   }
 
+  // Add this useEffect to handle batch filter state based on selected entry
+  useEffect(() => {
+    if (selectedEntry) {
+      // Extract the batch ID from the selected entry
+      const batchId = extractBatchId(selectedEntry)
+
+      // If selected entry has no batch ID, disable the batch filter
+      if (!batchId && filterByBatch) {
+        console.log("Automatically disabling batch filter because selected entry has no batch ID")
+        setFilterByBatch(false)
+      }
+    }
+  }, [selectedEntry, filterByBatch, batches])
+
+  // Check if the selected entry has a valid batch ID
+  const hasBatchId = selectedEntry ? extractBatchId(selectedEntry) !== null : false
+
   // Debug panel
 
   return (
@@ -493,8 +565,16 @@ const FacultySubstitute = () => {
                       id="filterBatch"
                       checked={filterByBatch}
                       onChange={() => setFilterByBatch(!filterByBatch)}
+                      disabled={!hasBatchId}
                     />
-                    <label htmlFor="filterBatch">Filter by Batch Handling</label>
+                    <label htmlFor="filterBatch">
+                      Filter by Batch Handling
+                      {selectedEntry && !hasBatchId && (
+                        <span className="form-text" style={{ color: "#f44336", marginLeft: "5px" }}>
+                          (No batch ID available)
+                        </span>
+                      )}
+                    </label>
                   </div>
                 </div>
                 <button
@@ -588,7 +668,8 @@ const FacultySubstitute = () => {
                               </td>
                               <td style={{ padding: "12px", textAlign: "left" }}>
                                 {selectedSubstitute === faculty.facultyId ? (
-                                  <button className="select-button"
+                                  <button
+                                    className="select-button"
                                     style={{
                                       backgroundColor: "#025d1f",
                                       color: "#fff",
@@ -603,7 +684,8 @@ const FacultySubstitute = () => {
                                     Selected
                                   </button>
                                 ) : (
-                                  <button className="select-button"
+                                  <button
+                                    className="select-button"
                                     style={{
                                       backgroundColor: "#013c28",
                                       color: "#fff",
