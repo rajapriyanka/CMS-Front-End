@@ -7,6 +7,11 @@ const Navbar = () => {
     <nav className="admin-navbar">
       <div className="admin-logo">DAYOFF DASHBOARD</div>
       <ul className="admin-nav-links">
+      <li>
+          <NavLink to="/admin-dashboard" activeClassName="active">
+            Dashboard
+          </NavLink>
+        </li>
         <li>
           <NavLink to="/faculty-data" activeClassName="active">
             Faculty

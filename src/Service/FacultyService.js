@@ -5,9 +5,9 @@ class FacultyService {
 
   // Utility to get the token
   static getToken() {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("adminToken") || localStorage.getItem("token")
     if (!token) {
-      throw new Error("No token found. Please log in.")
+      throw new Error("No authentication token found")
     }
     return token
   }
@@ -69,11 +69,50 @@ class FacultyService {
   }
 
   static async getAllBatches() {
-    return this.apiGet("/api/faculties/dashboard/batches")
+    try {
+      console.log("FacultyService: Fetching all batches")
+      const response = await axios.get(`${this.BASE_URL}/api/batches`, {
+        headers: { Authorization: `Bearer ${this.getToken()}` },
+      })
+      console.log("FacultyService: Batches received:", response.data)
+      return response.data
+    } catch (error) {
+      console.error("FacultyService: Error fetching batches:", error)
+      throw new Error(error.response?.data?.message || "Failed to fetch batches")
+    }
   }
 
   static async addCourseToBatch(facultyId, courseId, batchId) {
-    return this.apiPost(`/api/faculties/dashboard/faculty/${facultyId}/courses/${courseId}/batches/${batchId}`)
+    try {
+      const response = await axios.post(
+        `${this.BASE_URL}/api/faculties/dashboard/faculty/${facultyId}/courses/${courseId}/batches/${batchId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${this.getToken()}` },
+        },
+      )
+
+      // Check if the response contains an error message about another faculty
+      if (
+        response.data &&
+        typeof response.data === "string" &&
+        (response.data.includes("already assigned to") || response.data.includes("is already assigned"))
+      ) {
+        throw new Error(response.data)
+      }
+
+      return response.data
+    } catch (error) {
+      // Rethrow the error to be handled by the component
+      if (error.response && error.response.data) {
+        throw new Error(
+          typeof error.response.data === "string"
+            ? error.response.data
+            : error.response.data.message || "Failed to assign course to batch",
+        )
+      }
+      throw error
+    }
   }
 
   static async getAssignedCourses(facultyId) {
@@ -145,27 +184,6 @@ class FacultyService {
       throw new Error(error.response?.data?.message || "Request failed. Please try again.")
     }
   }
-  static getToken() {
-    const token = localStorage.getItem("adminToken") || localStorage.getItem("token")
-    if (!token) {
-      throw new Error("No authentication token found")
-    }
-    return token
-  }
-
-  static async getAllBatches() {
-    try {
-      console.log("FacultyService: Fetching all batches")
-      const response = await axios.get(`${this.BASE_URL}/api/batches`, {
-        headers: { Authorization: `Bearer ${this.getToken()}` },
-      })
-      console.log("FacultyService: Batches received:", response.data)
-      return response.data
-    } catch (error) {
-      console.error("FacultyService: Error fetching batches:", error)
-      throw new Error(error.response?.data?.message || "Failed to fetch batches")
-    }
-  }
 
   static async apiDelete(url) {
     try {
@@ -180,3 +198,4 @@ class FacultyService {
 }
 
 export default FacultyService
+

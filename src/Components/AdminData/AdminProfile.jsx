@@ -8,7 +8,7 @@ import AdminNavbar from "../Land/AdminNavbar" // Assuming this component exists
 const AdminProfile = () => {
   // Form states
   const [email, setEmail] = useState("")
-  
+
   // Password reset states
   const [showPasswordSection, setShowPasswordSection] = useState(true)
   const [passwordResetStep, setPasswordResetStep] = useState("request") // request, verify, success
@@ -60,8 +60,8 @@ const AdminProfile = () => {
       setErrorMessage("Error requesting password reset. Please try again.")
     }
   }
-  
-  // Add this function to handle username change
+
+  // Change the changeUsername function to match the expected API contract
   const changeUsername = async (e) => {
     e.preventDefault()
     setSuccessMessage("")
@@ -80,7 +80,7 @@ const AdminProfile = () => {
     try {
       await axios.post("http://localhost:8080/api/admin/password/change-email", {
         email: email,
-        newUsername: newUsername,
+        newEmail: newUsername, // Changed from newUsername to newEmail to match the API contract
       })
 
       setSuccessMessage("Username has been updated successfully")
@@ -94,7 +94,7 @@ const AdminProfile = () => {
 
   // Add a toggle function to switch between password and username sections
   const toggleSection = (section) => {
-    if (section === 'password') {
+    if (section === "password") {
       setShowPasswordSection(true)
       setShowUsernameSection(false)
     } else {
@@ -169,7 +169,7 @@ const AdminProfile = () => {
 
       setSuccessMessage("Password has been reset successfully")
       setPasswordResetStep("success")
-      
+
       // Reset form fields
       setOtp("")
       setNewPassword("")
@@ -215,23 +215,23 @@ const AdminProfile = () => {
         <div className="admin-profile-main-content">
           <div className="profile-card">
             <h2>Admin Profile Management</h2>
-          
+
             <div className="section-toggle">
-              <button 
-                className={`toggle-button ${showPasswordSection ? 'active' : ''}`} 
-                onClick={() => toggleSection('password')}
+              <button
+                className={`toggle-button ${showPasswordSection ? "active" : ""}`}
+                onClick={() => toggleSection("password")}
               >
                 Reset Password
               </button>
-              <button 
-                className={`toggle-button ${showUsernameSection ? 'active' : ''}`} 
-                onClick={() => toggleSection('username')}
+              <button
+                className={`toggle-button ${showUsernameSection ? "active" : ""}`}
+                onClick={() => toggleSection("username")}
               >
                 Change Username
               </button>
             </div>
 
-            <div className="password-section" style={{ display: showPasswordSection ? 'block' : 'none' }}>
+            <div className="password-section" style={{ display: showPasswordSection ? "block" : "none" }}>
               {passwordResetStep === "request" && (
                 <form onSubmit={requestPasswordReset}>
                   <div className="input-group">
@@ -258,15 +258,9 @@ const AdminProfile = () => {
                 <form onSubmit={verifyOtpAndResetPassword}>
                   <div className="input-group">
                     <label htmlFor="email">Email Address</label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      disabled
-                      className="disabled-input"
-                    />
+                    <input id="email" type="email" value={email} disabled className="disabled-input" />
                   </div>
-                  
+
                   <div className="input-group">
                     <label htmlFor="otp">OTP</label>
                     <input
@@ -277,7 +271,7 @@ const AdminProfile = () => {
                       placeholder="Enter OTP from your email"
                     />
                   </div>
-                  
+
                   <div className="input-group password-input-container">
                     <label htmlFor="new-password">New Password</label>
                     <div className="password-field">
@@ -338,15 +332,13 @@ const AdminProfile = () => {
                           </li>
                           <li className={passwordRequirements.special ? "met" : "not-met"}>
                             <span className="requirement-icon"></span>
-                            <span className="requirement-text">
-                              At least one special character (e.g., !@#$%^&*)
-                            </span>
+                            <span className="requirement-text">At least one special character (e.g., !@#$%^&*)</span>
                           </li>
                         </ul>
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="button-group">
                     <button type="submit" className="change-password-button">
                       Reset Password
@@ -374,7 +366,7 @@ const AdminProfile = () => {
               )}
             </div>
 
-            <div className="username-section" style={{ display: showUsernameSection ? 'block' : 'none' }}>
+            <div className="username-section" style={{ display: showUsernameSection ? "block" : "none" }}>
               <form onSubmit={changeUsername}>
                 <div className="input-group">
                   <label htmlFor="email-username">Email Address</label>
@@ -387,7 +379,7 @@ const AdminProfile = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="input-group">
                   <label htmlFor="new-username">New Username</label>
                   <input
@@ -399,11 +391,9 @@ const AdminProfile = () => {
                     required
                   />
                 </div>
-                
-                <p className="info-text">
-                  Enter your admin email address and the new username you want to use.
-                </p>
-                
+
+                <p className="info-text">Enter your admin email address and the new username you want to use.</p>
+
                 <button type="submit" className="change-username-button">
                   Change Username
                 </button>
@@ -420,3 +410,4 @@ const AdminProfile = () => {
 }
 
 export default AdminProfile
+

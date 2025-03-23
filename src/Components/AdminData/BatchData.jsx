@@ -309,12 +309,14 @@ const BatchData = () => {
                         <td>{batch.department}</td>
                         <td>{batch.section || "N/A"}</td>
                         <td>
-                          <button onClick={() => handleEdit(batch)} className="edit-button">
+                          <div className="action-buttons">
+                          <button onClick={() => handleEdit(batch)} className="batch-edit-button">
                             Edit
                           </button>
-                          <button onClick={() => handleDelete(batch.id)} className="delete-button">
+                          <button onClick={() => handleDelete(batch.id)} className="batch-delete-button">
                             Delete
                           </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

@@ -135,10 +135,10 @@ const CourseData = () => {
     }
 
     if (name === "contactPeriods") {
-      if (!/^[1-9]\d*$/.test(value) && value !== "") {
+      if (!/^[1-9]?$/.test(value)) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: "Contact Periods must be a positive number without special characters or letters",
+          [name]: "Contact Periods must be a single digit between 1 and 9",
         }))
         return
       }
@@ -168,14 +168,8 @@ const CourseData = () => {
 
     if (!formData.contactPeriods.trim()) {
       newErrors.contactPeriods = "Contact Periods is required"
-    } else {
-      const contactPeriodsValue = Number(formData.contactPeriods)
-      if (isNaN(contactPeriodsValue)) {
-        newErrors.contactPeriods = "Contact Periods must be a number"
-      } else if (contactPeriodsValue <= 0) {
-        newErrors.contactPeriods =
-          contactPeriodsValue === 0 ? "Contact Periods cannot be zero" : "Contact Periods cannot be negative"
-      }
+    } else if (!/^[1-9]$/.test(formData.contactPeriods)) {
+      newErrors.contactPeriods = "Contact Periods must be a number between 1 and 9"
     }
 
     if (!formData.semesterNo.trim()) {
@@ -315,7 +309,7 @@ const CourseData = () => {
     }
   }
 
-  // Update the validateExcelData function to check column order
+  // Update the validateExcelData function to check column order and duplicate course types
   const validateExcelData = (data) => {
     const errors = []
 
@@ -351,6 +345,9 @@ const CourseData = () => {
       }
     }
 
+    // Track courses to check for duplicates with same type
+    const courseMap = new Map()
+
     // Continue with the existing validation for each row
     data.forEach((row, index) => {
       const rowNum = index + 2 // Row number in Excel (considering headers)
@@ -365,9 +362,9 @@ const CourseData = () => {
         errors.push(`Row ${rowNum}: Invalid Code (Only alphanumeric characters, min 5 characters required)`)
       }
 
-      // Validate Contact Periods (positive number)
-      if (!row["Contact Periods"] || isNaN(Number(row["Contact Periods"])) || Number(row["Contact Periods"]) <= 0) {
-        errors.push(`Row ${rowNum}: Invalid Contact Periods (Must be a positive number)`)
+      // Validate Contact Periods (must be a single digit between 1 and 9)
+      if (!row["Contact Periods"] || !/^[1-9]$/.test(row["Contact Periods"])) {
+        errors.push(`Row ${rowNum}: Invalid Contact Periods (Must be a single digit between 1 and 9)`)
       }
 
       // Validate Semester Number
@@ -384,7 +381,48 @@ const CourseData = () => {
       if (!row.Type || !courseTypes.includes(row.Type)) {
         errors.push(`Row ${rowNum}: Invalid Course Type (Must be ACADEMIC, NON_ACADEMIC, or LAB)`)
       }
+
+      // Check for duplicate courses with the same type
+      if (row.Title && row.Code && row.Type) {
+        const courseKey = `${row.Title.trim().toLowerCase()}_${row.Code.trim().toLowerCase()}`
+
+        if (courseMap.has(courseKey)) {
+          const existingTypes = courseMap.get(courseKey)
+
+          if (existingTypes.includes(row.Type)) {
+            errors.push(
+              `Row ${rowNum}: Duplicate course "${row.Title}" with code "${row.Code}" and type "${row.Type}" found. Courses can have the same name and code but must have different types.`,
+            )
+          } else {
+            courseMap.get(courseKey).push(row.Type)
+          }
+        } else {
+          courseMap.set(courseKey, [row.Type])
+        }
+      }
     })
+
+    // Also check for duplicates with existing courses in the database
+    if (courses.length > 0 && data.length > 0) {
+      data.forEach((row, index) => {
+        const rowNum = index + 2
+
+        if (row.Title && row.Code && row.Type) {
+          const matchingCourses = courses.filter(
+            (course) =>
+              course.title.trim().toLowerCase() === row.Title.trim().toLowerCase() &&
+              course.code.trim().toLowerCase() === row.Code.trim().toLowerCase() &&
+              course.type === row.Type,
+          )
+
+          if (matchingCourses.length > 0) {
+            errors.push(
+              `Row ${rowNum}: Course "${row.Title}" with code "${row.Code}" and type "${row.Type}" already exists in the database.`,
+            )
+          }
+        }
+      })
+    }
 
     return errors
   }
@@ -441,15 +479,14 @@ const CourseData = () => {
                   {errors.code && <span className="error-message">{errors.code}</span>}
                 </div>
                 <div className="form-group">
-                  <label htmlFor="contactPeriods">Contact Periods</label>
+                  <label htmlFor="contactPeriods">Contact Periods Per Week</label>
                   <input
-                    type="number"
+                    type="text"
                     id="contactPeriods"
                     name="contactPeriods"
                     value={formData.contactPeriods}
                     onChange={handleInputChange}
                     className="form-input"
-                   
                   />
                   {errors.contactPeriods && <span className="error-message">{errors.contactPeriods}</span>}
                 </div>
@@ -480,11 +517,9 @@ const CourseData = () => {
                     onChange={handleInputChange}
                     className="form-input"
                   >
-                    {courseTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
+                    <option value="ACADEMIC">Theory</option>
+                    <option value="NON_ACADEMIC">Co-curricular</option>
+                    <option value="LAB">Lab</option>
                   </select>
                 </div>
                 <div className="form-group">
@@ -608,15 +643,23 @@ const CourseData = () => {
                         <td>{course.code}</td>
                         <td>{course.contactPeriods}</td>
                         <td>{course.semesterNo}</td>
-                        <td>{course.type}</td>
+                        <td>
+                          {course.type === "ACADEMIC"
+                            ? "Theory"
+                            : course.type === "NON_ACADEMIC"
+                              ? "Co-Curricular"
+                              : "Lab"}
+                        </td>
                         <td>{course.department || "N/A"}</td>
                         <td>
-                          <button className="edit-button" onClick={() => handleEdit(course)}>
-                            Edit
-                          </button>
-                          <button className="delete-button" onClick={() => handleDelete(course.id)}>
-                            Delete
-                          </button>
+                          <div className="action-buttons">
+                            <button className="edit-button" onClick={() => handleEdit(course)}>
+                              Edit
+                            </button>
+                            <button className="delete-button" onClick={() => handleDelete(course.id)}>
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

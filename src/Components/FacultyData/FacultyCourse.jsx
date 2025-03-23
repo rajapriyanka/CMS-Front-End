@@ -7,7 +7,7 @@ import FacultyNavbar from "../Land/FacultyNavbar"
 
 const FacultyCourse = () => {
   const [showForm, setShowForm] = useState(false)
-  const [showAssignedCourses, setShowAssignedCourses] = useState(false) // New state for assigned courses
+  const [showAssignedCourses, setShowAssignedCourses] = useState(false)
   const [courses, setCourses] = useState([])
   const [batches, setBatches] = useState([])
   const [assignedCourses, setAssignedCourses] = useState([])
@@ -15,10 +15,26 @@ const FacultyCourse = () => {
   const [selectedBatchId, setSelectedBatchId] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [formError, setFormError] = useState(null) // New state for form-specific errors
+
+  // Helper function to get user-friendly course type label
+  const getCourseTypeLabel = (type) => {
+    switch (type) {
+      case "ACADEMIC":
+        return "Theory"
+      case "NON_ACADEMIC":
+        return "Co-Curricular"
+      case "LAB":
+        return "Lab"
+      default:
+        return type || "N/A"
+    }
+  }
 
   useEffect(() => {
     if (showForm) {
       fetchCoursesAndBatches()
+      setFormError(null) // Clear form errors when showing form
     }
     if (showAssignedCourses) {
       fetchAssignedCourses()
@@ -45,7 +61,18 @@ const FacultyCourse = () => {
         throw new Error("Faculty ID not found. Please log in again.")
       }
       const assignedCoursesData = await FacultyService.getAssignedCourses(facultyId)
-      setAssignedCourses(assignedCoursesData)
+
+      // Enrich the assigned courses with course type information
+      const enrichedCourses = assignedCoursesData.map((course) => {
+        // Find the full course details from the courses array to get the type
+        const fullCourseDetails = courses.find((c) => c.id === course.courseId)
+        return {
+          ...course,
+          type: fullCourseDetails?.type || "ACADEMIC", // Default to ACADEMIC if not found
+        }
+      })
+
+      setAssignedCourses(enrichedCourses)
     } catch (error) {
       console.error("Error fetching assigned courses:", error)
       setError("Failed to fetch assigned courses. Please try again.")
@@ -55,42 +82,58 @@ const FacultyCourse = () => {
   }
 
   const handleSubmit = async () => {
+    setFormError(null) // Clear previous form errors
+
+    if (!selectedCourseId || !selectedBatchId) {
+      setFormError("Please select both a course and batch.")
+      return
+    }
+
+    const facultyId = localStorage.getItem("facultyId")
+    if (!facultyId) {
+      setFormError("Faculty ID not found. Please log in again.")
+      return
+    }
+
+    setLoading(true)
+
     try {
-      if (!selectedCourseId || !selectedBatchId) {
-        alert("Please select both a course and batch.")
-        return
-      }
-
-      const facultyId = localStorage.getItem("facultyId")
-      if (!facultyId) {
-        alert("Faculty ID not found. Please log in again.")
-        return
-      }
-
       await FacultyService.addCourseToBatch(facultyId, selectedCourseId, selectedBatchId)
       alert("Course assigned to batch successfully!")
       resetForm()
-      fetchAssignedCourses() // Refresh the assigned courses list
+      // Fetch courses first to ensure we have the course types
+      await fetchCoursesAndBatches()
+      // Then fetch assigned courses
+      fetchAssignedCourses()
     } catch (error) {
-      console.error("Error submitting course data:", error)
-      alert(error.message || "An unexpected error occurred. Please try again later.")
+      console.error("Error in handleSubmit:", error)
+
+      // Set the error message from the caught error
+      setFormError(error.message || "An unexpected error occurred. Please try again later.")
+    } finally {
+      setLoading(false)
     }
   }
 
   const resetForm = () => {
     setSelectedCourseId("")
     setSelectedBatchId("")
+    setFormError(null)
   }
 
   const handleRemoveCourse = async (courseId, batchId) => {
-    if (window.confirm("Are you sure you want to remove this course? This will also remove any related timetable entries.")) {
+    if (
+      window.confirm(
+        "Are you sure you want to remove this course? This will also remove any related timetable entries.",
+      )
+    ) {
       try {
         const facultyId = localStorage.getItem("facultyId")
         if (!facultyId) {
           alert("Faculty ID not found. Please log in again.")
           return
         }
-        
+
         setLoading(true)
         await FacultyService.removeCourse(facultyId, courseId, batchId)
         alert("Course removed successfully!")
@@ -110,21 +153,25 @@ const FacultyCourse = () => {
       <div className="faculty-course-container">
         <div className="faculty-course-sidebar">
           <h2>Faculty Dashboard</h2>
-          <button 
+          <button
             onClick={() => {
               setShowForm(!showForm)
               setShowAssignedCourses(false) // Hide assigned courses if form is shown
-            }} 
+            }}
             className="sidebar-button"
           >
             {showForm ? "Hide Form" : "Add Course"}
           </button>
 
-          <button 
+          <button
             onClick={() => {
               setShowAssignedCourses(!showAssignedCourses)
               setShowForm(false) // Hide form if assigned courses are shown
-            }} 
+              if (!showAssignedCourses) {
+                // If we're about to show assigned courses, fetch courses first
+                fetchCoursesAndBatches().then(() => fetchAssignedCourses())
+              }
+            }}
             className="sidebar-button"
           >
             {showAssignedCourses ? "Hide Assigned Courses" : "Assigned Courses"}
@@ -135,6 +182,24 @@ const FacultyCourse = () => {
           {showForm && (
             <div className="card add-course-form">
               <h3>Add New Course</h3>
+
+              {/* Display form error message */}
+              {formError && (
+                <div
+                  className="error-message"
+                  style={{
+                    color: "red",
+                    marginBottom: "15px",
+                    padding: "10px",
+                    backgroundColor: "#ffeeee",
+                    borderRadius: "5px",
+                    border: "1px solid #ffcccc",
+                  }}
+                >
+                  {formError}
+                </div>
+              )}
+
               <label>Select Course:</label>
               <select
                 value={selectedCourseId}
@@ -144,17 +209,13 @@ const FacultyCourse = () => {
                 <option value="">-- Select Course --</option>
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
-                    {course.title} ({course.code})
+                    {course.title} ({course.code}) - {getCourseTypeLabel(course.type)}
                   </option>
                 ))}
               </select>
 
               <label>Select Batch:</label>
-              <select 
-                value={selectedBatchId} 
-                onChange={(e) => setSelectedBatchId(e.target.value)} 
-                className="dropdown"
-              >
+              <select value={selectedBatchId} onChange={(e) => setSelectedBatchId(e.target.value)} className="dropdown">
                 <option value="">-- Select Batch --</option>
                 {batches.map((batch) => (
                   <option key={batch.id} value={batch.id}>
@@ -163,8 +224,8 @@ const FacultyCourse = () => {
                 ))}
               </select>
 
-              <button onClick={handleSubmit} className="add-course-submit-button">
-                Submit
+              <button onClick={handleSubmit} className="add-course-submit-button" disabled={loading}>
+                {loading ? "Processing..." : "Submit"}
               </button>
             </div>
           )}
@@ -180,6 +241,7 @@ const FacultyCourse = () => {
                     <tr>
                       <th>Course Code</th>
                       <th>Course Title</th>
+                      <th>Course Type</th>
                       <th>Batch Name</th>
                       <th>Department</th>
                       <th>Section</th>
@@ -191,15 +253,17 @@ const FacultyCourse = () => {
                       <tr key={index}>
                         <td>{course.code}</td>
                         <td>{course.title}</td>
+                        <td>{getCourseTypeLabel(course.type)}</td>
                         <td>{course.batchName}</td>
                         <td>{course.department}</td>
                         <td>{course.section || "N/A"}</td>
                         <td>
-                          <button 
+                          <button
                             className="remove-button"
                             onClick={() => handleRemoveCourse(course.courseId, course.batchId)}
+                            disabled={loading}
                           >
-                            Remove
+                            {loading ? "..." : "Remove"}
                           </button>
                         </td>
                       </tr>
@@ -216,4 +280,5 @@ const FacultyCourse = () => {
   )
 }
 
-export default FacultyCourse;
+export default FacultyCourse
+
