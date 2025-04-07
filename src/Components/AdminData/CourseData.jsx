@@ -517,6 +517,7 @@ const CourseData = () => {
                     onChange={handleInputChange}
                     className="form-input"
                   >
+                    <option value = "Select Course Type"></option>
                     <option value="ACADEMIC">Theory</option>
                     <option value="NON_ACADEMIC">Co-curricular</option>
                     <option value="LAB">Lab</option>

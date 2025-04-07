@@ -13,7 +13,7 @@ const TimetableData = () => {
   const [timetable, setTimetable] = useState([])
   const [batches, setBatches] = useState([])
   const [selectedBatchId, setSelectedBatchId] = useState("")
-  const [academicYear, setAcademicYear] = useState("2023-2024")
+  const [academicYear, setAcademicYear] = useState("2024-2025")
   const [semester, setSemester] = useState("1")
   const navigate = useNavigate()
 

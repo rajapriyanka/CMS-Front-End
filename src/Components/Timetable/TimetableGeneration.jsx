@@ -12,7 +12,7 @@ const TimetableGeneration = () => {
   const [message, setMessage] = useState({ type: "", text: "" })
   const [faculties, setFaculties] = useState([])
   const [selectedFacultyId, setSelectedFacultyId] = useState("")
-  const [academicYear, setAcademicYear] = useState("2023-2024")
+  const [academicYear, setAcademicYear] = useState("2024-2025")
   const [semester, setSemester] = useState("FALL")
   const navigate = useNavigate()
 
